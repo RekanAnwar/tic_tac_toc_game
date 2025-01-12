@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/auth_controller.dart';
+import 'package:tic_tac_toc_game/utils/auth_error_handler.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -31,10 +33,22 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/home');
         }
+      } on FirebaseAuthException catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(getAuthErrorMessage(e.code)),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
+            SnackBar(
+              content: const Text('An error occurred. Please try again later'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
           );
         }
       }
@@ -54,17 +68,36 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             children: [
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Please enter email' : null,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  prefixIcon: Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter email';
+                  }
+                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                      .hasMatch(value)) {
+                    return 'Please enter a valid email';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock),
+                ),
                 obscureText: true,
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Please enter password' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter password';
+                  }
+                  return null;
+                },
               ),
               const SizedBox(height: 24),
               ElevatedButton(

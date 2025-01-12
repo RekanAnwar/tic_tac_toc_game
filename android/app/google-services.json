@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "75924158457",
+    "project_id": "tic-tac-toc-dfd60",
+    "storage_bucket": "tic-tac-toc-dfd60.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75924158457:android:0e5ac645db9def3ad02f28",
+        "android_client_info": {
+          "package_name": "com.example.tic_tac_toc_game"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "75924158457-orbgi16r5ojje6j13koeajeruhbta91k.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBd3sXRWt-dQmL8E7NOW4QxoNwMXbligHk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "75924158457-orbgi16r5ojje6j13koeajeruhbta91k.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "75924158457-enkg8bju0jl5pmf9r2o26udti9mtsoro.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ticTacTocGame"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

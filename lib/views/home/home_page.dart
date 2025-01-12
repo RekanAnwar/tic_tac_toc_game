@@ -28,7 +28,11 @@ class HomePage extends ConsumerWidget {
           children: [
             Text('Welcome ${user?.email ?? ""}!'),
             const SizedBox(height: 20),
-            // Add your game UI here
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/game'),
+              icon: const Icon(Icons.games),
+              label: const Text('Play Tic Tac Toe'),
+            ),
           ],
         ),
       ),

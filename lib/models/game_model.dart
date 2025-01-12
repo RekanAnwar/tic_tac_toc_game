@@ -8,6 +8,7 @@ class GameModel extends Equatable {
     required this.currentPlayer,
     this.gameOver = false,
     this.winner,
+    this.winningLine,
   });
 
   factory GameModel.initial() {
@@ -23,21 +24,25 @@ class GameModel extends Equatable {
   final Player currentPlayer;
   final bool gameOver;
   final Player? winner;
+  final List<List<int>>? winningLine;
 
   GameModel copyWith({
     List<List<Player>>? board,
     Player? currentPlayer,
     bool? gameOver,
     Player? winner,
+    List<List<int>>? winningLine,
   }) {
     return GameModel(
       board: board ?? this.board,
       currentPlayer: currentPlayer ?? this.currentPlayer,
       gameOver: gameOver ?? this.gameOver,
       winner: winner ?? this.winner,
+      winningLine: winningLine ?? this.winningLine,
     );
   }
 
   @override
-  List<Object?> get props => [board, currentPlayer, gameOver, winner];
+  List<Object?> get props =>
+      [board, currentPlayer, gameOver, winner, winningLine];
 }

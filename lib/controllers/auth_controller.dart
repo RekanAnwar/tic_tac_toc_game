@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/models/user_model.dart';
@@ -16,36 +18,44 @@ class AuthController extends StateNotifier<AsyncValue<UserModel?>> {
       );
     });
   }
+
   final FirebaseAuth _auth;
 
   Future<void> signUp(String email, String password) async {
     try {
       state = const AsyncValue.loading();
+
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+
       state = AsyncValue.data(UserModel.fromFirebase(credential));
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      log(e.toString(), error: e, stackTrace: st);
+      state = const AsyncValue.data(null);
     }
   }
 
   Future<void> signIn(String email, String password) async {
     try {
       state = const AsyncValue.loading();
+
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
+
       state = AsyncValue.data(UserModel.fromFirebase(credential));
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      log(e.toString(), error: e, stackTrace: st);
+      state = const AsyncValue.data(null);
     }
   }
 
   Future<void> signOut() async {
     await _auth.signOut();
+
     state = const AsyncValue.data(null);
   }
 }

@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/firebase_options.dart';
@@ -14,6 +17,20 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  FlutterError.onError = (details) {
+    log(
+      details.exceptionAsString(),
+      error: details.exception,
+      stackTrace: details.stack,
+    );
+  };
+
+  PlatformDispatcher.instance.onError = (error, stackTrace) {
+    log(error.toString(), error: error, stackTrace: stackTrace);
+
+    return true;
+  };
 
   runApp(const ProviderScope(child: MyApp()));
 }

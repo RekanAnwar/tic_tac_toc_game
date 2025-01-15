@@ -7,12 +7,12 @@ class GameCell extends StatelessWidget {
   const GameCell({
     super.key,
     required this.player,
-    required this.onTap,
+    this.onTap,
     this.isWinningCell = false,
   });
 
   final Player player;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final bool isWinningCell;
 
   @override

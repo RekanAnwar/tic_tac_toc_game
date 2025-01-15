@@ -28,7 +28,6 @@ void main() async {
 
   PlatformDispatcher.instance.onError = (error, stackTrace) {
     log(error.toString(), error: error, stackTrace: stackTrace);
-
     return true;
   };
 
@@ -47,11 +46,26 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const AuthWrapper(),
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/signup': (context) => const SignupPage(),
-        '/home': (context) => const HomePage(),
-        '/game': (context) => const GamePage(),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/login':
+            return MaterialPageRoute(builder: (_) => const LoginPage());
+          case '/signup':
+            return MaterialPageRoute(builder: (_) => const SignupPage());
+          case '/home':
+            return MaterialPageRoute(builder: (_) => const HomePage());
+          case '/game':
+            final args = settings.arguments as Map<String, String>?;
+            return MaterialPageRoute(
+              builder: (_) => GamePage(
+                gameId: args?['gameId'],
+                player1Id: args?['player1Id'],
+                player2Id: args?['player2Id'],
+              ),
+            );
+          default:
+            return MaterialPageRoute(builder: (_) => const AuthWrapper());
+        }
       },
     );
   }

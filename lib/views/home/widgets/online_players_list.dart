@@ -13,114 +13,121 @@ class OnlinePlayersList extends ConsumerWidget {
     final gameRequests = ref.watch(gameRequestsProvider);
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
           padding: const EdgeInsets.all(16.0),
-          child: Text(
-            'Online Players',
-            style: Theme.of(context).textTheme.titleLarge,
+          sliver: SliverToBoxAdapter(
+            child: Text(
+              'Online Players',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
           ),
         ),
         gameRequests.when(
           data: (requests) {
-            if (requests.isEmpty) return const SizedBox.shrink();
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: requests.length,
-              itemBuilder: (context, index) {
-                final request = requests[index];
-                // Find the sender in the online players list
-                final sender = onlinePlayers.value?.firstWhere(
-                  (player) => player.id == request.fromPlayerId,
-                  orElse: () => OnlinePlayerModel(
-                    id: request.fromPlayerId,
-                    email: 'Unknown Player',
-                  ),
-                );
+            if (requests.isEmpty) {
+              return const SliverToBoxAdapter(child: SizedBox.shrink());
+            }
 
-                return Card(
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.blue,
-                      child: Text(
-                        sender?.email[0].toUpperCase() ?? '?',
-                        style: const TextStyle(color: Colors.white),
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final request = requests[index];
+                  final sender = onlinePlayers.value?.firstWhere(
+                    (player) => player.id == request.fromPlayerId,
+                    orElse: () => OnlinePlayerModel(
+                      id: request.fromPlayerId,
+                      email: 'Unknown Player',
+                    ),
+                  );
+
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: Colors.blue,
+                        child: Text(
+                          sender?.email[0].toUpperCase() ?? '?',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      title: Text(
+                          'Game Request from ${sender?.email ?? 'Unknown Player'}'),
+                      subtitle: const Text('Would you like to play a game?'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.check_circle,
+                                color: Colors.green, size: 32),
+                            onPressed: () {
+                              try {
+                                ref
+                                    .read(onlineGameControllerProvider.notifier)
+                                    .respondToGameRequest(request.id, true);
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Failed to accept game request. Please try again.'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.cancel,
+                                color: Colors.red, size: 32),
+                            onPressed: () {
+                              try {
+                                ref
+                                    .read(onlineGameControllerProvider.notifier)
+                                    .respondToGameRequest(request.id, false);
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Failed to reject game request. Please try again.'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                    title: Text(
-                        'Game Request from ${sender?.email ?? 'Unknown Player'}'),
-                    subtitle: const Text('Would you like to play a game?'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.check_circle,
-                              color: Colors.green, size: 32),
-                          onPressed: () {
-                            try {
-                              ref
-                                  .read(onlineGameControllerProvider.notifier)
-                                  .respondToGameRequest(request.id, true);
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Failed to accept game request. Please try again.'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.cancel,
-                              color: Colors.red, size: 32),
-                          onPressed: () {
-                            try {
-                              ref
-                                  .read(onlineGameControllerProvider.notifier)
-                                  .respondToGameRequest(request.id, false);
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Failed to reject game request. Please try again.'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                  );
+                },
+                childCount: requests.length,
+              ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => Center(
-            child: Text('Error loading game requests: $error'),
+          loading: () => const SliverToBoxAdapter(
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (error, _) => SliverToBoxAdapter(
+            child: Center(
+              child: Text('Error loading game requests: $error'),
+            ),
           ),
         ),
-        Expanded(
-          child: onlinePlayers.when(
-            data: (players) {
-              if (players.isEmpty) {
-                return const Center(
+        onlinePlayers.when(
+          data: (players) {
+            if (players.isEmpty) {
+              return const SliverFillRemaining(
+                child: Center(
                   child: Text('No players online'),
-                );
-              }
+                ),
+              );
+            }
 
-              return ListView.builder(
-                itemCount: players.length,
-                itemBuilder: (context, index) {
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
                   final player = players[index];
                   return ListTile(
                     leading: CircleAvatar(
@@ -138,8 +145,7 @@ class OnlinePlayersList extends ConsumerWidget {
                               if (currentUserId != null) {
                                 try {
                                   ref
-                                      .read(
-                                          onlineGameControllerProvider.notifier)
+                                      .read(onlineGameControllerProvider.notifier)
                                       .sendGameRequest(player.id);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
@@ -162,12 +168,17 @@ class OnlinePlayersList extends ConsumerWidget {
                         : null,
                   );
                 },
-              );
-            },
-            loading: () => const Center(
+                childCount: players.length,
+              ),
+            );
+          },
+          loading: () => const SliverFillRemaining(
+            child: Center(
               child: CircularProgressIndicator(),
             ),
-            error: (error, _) => Center(
+          ),
+          error: (error, _) => SliverFillRemaining(
+            child: Center(
               child: Text('Error: $error'),
             ),
           ),

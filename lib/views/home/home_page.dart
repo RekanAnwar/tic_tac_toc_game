@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/auth_controller.dart';
 import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
 import 'package:tic_tac_toc_game/views/home/widgets/online_players_list.dart';
 
@@ -41,8 +40,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(authControllerProvider).value;
-
     // Listen for accepted game requests
     ref.listen(acceptedGameRequestProvider, (previous, next) async {
       if (next.value != null) {
@@ -63,32 +60,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              ref.read(authControllerProvider.notifier).signOut();
-              Navigator.of(context).pushReplacementNamed('/login');
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text(
-              'Welcome ${user?.email ?? ""}!',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-          ),
-          const Expanded(
-            child: OnlinePlayersList(),
-          ),
-        ],
-      ),
+      appBar: AppBar(toolbarHeight: 0),
+      body: const OnlinePlayersList(),
     );
   }
 }

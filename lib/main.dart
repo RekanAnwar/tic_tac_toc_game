@@ -44,6 +44,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return LifecycleEventHandler(
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'Tic Tac Toe',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),

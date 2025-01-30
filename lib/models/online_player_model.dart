@@ -1,6 +1,23 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
-enum OnlineStatus { online, inGame, offline }
+enum OnlineStatus {
+  online,
+  inGame,
+  offline;
+
+  Color get color => switch (this) {
+        OnlineStatus.online => Colors.green,
+        OnlineStatus.inGame => Colors.orange,
+        OnlineStatus.offline => Colors.grey,
+      };
+
+  String get text => switch (this) {
+        OnlineStatus.online => 'Online',
+        OnlineStatus.inGame => 'In Game',
+        OnlineStatus.offline => 'Offline',
+      };
+}
 
 class OnlinePlayerModel extends Equatable {
   factory OnlinePlayerModel.fromMap(Map<String, dynamic> map) {

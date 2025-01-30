@@ -66,14 +66,18 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
         if (snapshot.exists) {
           final data = snapshot.data()!;
 
-          // Ensure we have a valid board data
           if (data['board'] != null) {
             final List<dynamic> rawBoard = List<dynamic>.from(data['board']);
-            state = AsyncValue.data(GameModel.fromMap({
-              ...data,
-              'board': rawBoard, // Pass the raw board data directly
-              'gameId': snapshot.id,
-            }));
+
+            state = AsyncValue.data(
+              GameModel.fromMap(
+                {
+                  ...data,
+                  'board': rawBoard,
+                  'gameId': snapshot.id,
+                },
+              ),
+            );
           }
         }
       },

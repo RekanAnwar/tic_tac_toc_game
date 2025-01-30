@@ -8,66 +8,73 @@ import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/models/online_player_model.dart';
 
 final onlineGameControllerProvider = StateNotifierProvider<OnlineGameController,
-    AsyncValue<List<OnlinePlayerModel>>>((ref) {
-  return OnlineGameController(
-    FirebaseFirestore.instance,
-    FirebaseAuth.instance,
-  );
-});
+    AsyncValue<List<OnlinePlayerModel>>>(
+  (ref) {
+    return OnlineGameController(
+      FirebaseFirestore.instance,
+      FirebaseAuth.instance,
+    );
+  },
+);
 
-final gameRequestsProvider = StreamProvider<List<GameRequest>>((ref) {
-  final auth = FirebaseAuth.instance;
-  final firestore = FirebaseFirestore.instance;
+final gameRequestsProvider = StreamProvider<List<GameRequest>>(
+  (ref) {
+    final auth = FirebaseAuth.instance;
+    final firestore = FirebaseFirestore.instance;
 
-  if (auth.currentUser == null) return Stream.value([]);
+    if (auth.currentUser == null) return Stream.value([]);
 
-  return firestore
-      .collection('gameRequests')
-      .where('toPlayerId', isEqualTo: auth.currentUser!.uid)
-      .where('status', isEqualTo: GameRequestStatus.pending.toString())
-      .snapshots()
-      .map((snapshot) => snapshot.docs
-          .map((doc) => GameRequest.fromMap({...doc.data(), 'id': doc.id}))
-          .toList());
-});
+    return firestore
+        .collection('gameRequests')
+        .where('toPlayerId', isEqualTo: auth.currentUser!.uid)
+        .where('status', isEqualTo: GameRequestStatus.pending.toString())
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => GameRequest.fromMap({...doc.data(), 'id': doc.id}))
+            .toList());
+  },
+);
 
 // Provider to listen for accepted game requests
-final acceptedGameRequestProvider = StreamProvider<Map<String, String>?>((ref) {
-  final auth = FirebaseAuth.instance;
-  final firestore = FirebaseFirestore.instance;
+final acceptedGameRequestProvider = StreamProvider<Map<String, String>?>(
+  (ref) {
+    final auth = FirebaseAuth.instance;
+    final firestore = FirebaseFirestore.instance;
 
-  if (auth.currentUser == null) return Stream.value(null);
+    if (auth.currentUser == null) return Stream.value(null);
 
-  return firestore
-      .collection('gameRequests')
-      .where(Filter.or(
-        Filter('fromPlayerId', isEqualTo: auth.currentUser!.uid),
-        Filter('toPlayerId', isEqualTo: auth.currentUser!.uid),
-      ))
-      .snapshots()
-      .asyncMap((snapshot) async {
-    if (snapshot.docs.isEmpty) return null;
+    return firestore
+        .collection('gameRequests')
+        .where(Filter.or(
+          Filter('fromPlayerId', isEqualTo: auth.currentUser!.uid),
+          Filter('toPlayerId', isEqualTo: auth.currentUser!.uid),
+        ))
+        .snapshots()
+        .asyncMap((snapshot) async {
+      if (snapshot.docs.isEmpty) return null;
 
-    final doc = snapshot.docs.first;
-    final request = GameRequest.fromMap({...doc.data(), 'id': doc.id});
+      final doc = snapshot.docs.first;
+      final request = GameRequest.fromMap({...doc.data(), 'id': doc.id});
 
-    // Only proceed if the request is accepted and has a game ID
-    if (request.status == GameRequestStatus.accepted &&
-        request.gameId != null) {
-      // Verify that the game exists
-      final gameDoc =
-          await firestore.collection('games').doc(request.gameId).get();
-      if (gameDoc.exists) {
-        return {
-          'gameId': request.gameId!,
-          'player1Id': request.fromPlayerId,
-          'player2Id': request.toPlayerId,
-        };
+      // Only proceed if the request is accepted and has a game ID
+      if (request.status == GameRequestStatus.accepted &&
+          request.gameId != null) {
+        // Verify that the game exists
+        final gameDoc =
+            await firestore.collection('games').doc(request.gameId).get();
+
+        if (gameDoc.exists) {
+          return {
+            'gameId': request.gameId!,
+            'player1Id': request.fromPlayerId,
+            'player2Id': request.toPlayerId,
+          };
+        }
       }
-    }
-    return null;
-  });
-});
+      return null;
+    });
+  },
+);
 
 class OnlineGameController
     extends StateNotifier<AsyncValue<List<OnlinePlayerModel>>> {

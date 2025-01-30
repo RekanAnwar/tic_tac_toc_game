@@ -37,7 +37,7 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
           NavigationDestination(
             icon: Icon(Icons.leaderboard),
-            label: 'Rank',
+            label: 'Ranking',
           ),
           NavigationDestination(
             icon: Icon(Icons.account_circle_outlined),

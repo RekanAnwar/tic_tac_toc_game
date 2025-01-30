@@ -70,8 +70,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(
-                  labelText: 'Email',
-                  prefixIcon: Icon(Icons.email),
+                  hintText: 'Email',
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
@@ -89,8 +88,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               TextFormField(
                 controller: _passwordController,
                 decoration: const InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock),
+                  hintText: 'Password',
                 ),
                 obscureText: true,
                 validator: (value) {
@@ -103,7 +101,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _login,
-                child: const Text('Login'),
+                child: const Text('Sign In',style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+
+                ),
+                
               ),
               TextButton(
                 onPressed: () => Navigator.pushNamed(context, '/signup'),

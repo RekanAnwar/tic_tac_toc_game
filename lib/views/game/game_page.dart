@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/auth_controller.dart';
@@ -5,6 +6,7 @@ import 'package:tic_tac_toc_game/controllers/game_controller.dart';
 import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
 import 'package:tic_tac_toc_game/extensions/context_extension.dart';
 import 'package:tic_tac_toc_game/models/game_model.dart';
+import 'package:tic_tac_toc_game/models/online_player_model.dart';
 import 'package:tic_tac_toc_game/views/game/widgets/game_cell.dart';
 
 class GamePage extends ConsumerStatefulWidget {
@@ -51,22 +53,62 @@ class _GamePageState extends ConsumerState<GamePage> {
     final game = widget.game;
 
     final gameState = ref.watch(gameControllerProvider);
-    final currentUserId = ref.watch(authControllerProvider).value?.id;
+    final currentUser = ref.watch(authControllerProvider).value!;
 
     ref.listen(
       gameControllerProvider,
       (previous, next) {
         if (next.value != null && next.value!.gameOver) {
+          final game = next.value!;
+          final isWinner = game.winner != null &&
+              ((game.winner == Player.X && game.player1Id == currentUser.id) ||
+                  (game.winner == Player.O &&
+                      game.player2Id == currentUser.id));
+
           showDialog(
             context: context,
+            barrierDismissible: false,
             builder: (context) => AlertDialog(
-              title: const Text('Game Over'),
-              content: const Text('The game is over.'),
+              title: Text(
+                game.winner != null
+                    ? isWinner
+                        ? 'You Won! 🎉'
+                        : 'You Lost! 😔'
+                    : 'Draw Game! 🤝',
+                style: TextStyle(
+                  color: game.winner != null
+                      ? isWinner
+                          ? Colors.green
+                          : Colors.red
+                      : null,
+                ),
+              ),
+              content: Text(
+                game.winner != null
+                    ? isWinner
+                        ? 'Congratulations! You have won the game!'
+                        : 'Better luck next time! Keep playing to improve.'
+                    : 'It\'s a draw! Great game by both players!',
+              ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(context)
-                    ..pop()
-                    ..pop(),
+                  onPressed: () async {
+                    await FirebaseFirestore.instance
+                        .collection('onlinePlayers')
+                        .doc(currentUser.id)
+                        .set({
+                      'id': currentUser.id,
+                      'email': currentUser.email,
+                      'status': OnlineStatus.online.toString(),
+                      'lastSeen': DateTime.now().millisecondsSinceEpoch,
+                    });
+
+                    if (!context.mounted) return;
+
+                    Navigator.of(context)
+                      ..pop()
+                      ..pop();
+                  },
                   child: const Text('Return to Home'),
                 ),
               ],
@@ -104,7 +146,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                           onPressed: () async {
                             await ref
                                 .read(gameControllerProvider.notifier)
-                                .leaveGame(game.gameId!, currentUserId!);
+                                .leaveGame(game.gameId!, currentUser.id!);
                             if (context.mounted) {
                               Navigator.pop(context, true);
                               Navigator.of(context).pushReplacementNamed(
@@ -122,7 +164,7 @@ class _GamePageState extends ConsumerState<GamePage> {
           ],
         ),
         body: gameState.when(
-          data: (game) => _buildGameBody(context, game, currentUserId),
+          data: (game) => _buildGameBody(context, game, currentUser.id),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(child: Text('Error: $error')),
         ),

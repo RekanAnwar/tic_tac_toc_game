@@ -26,38 +26,38 @@ class _HomePageState extends ConsumerState<HomePage> {
           .doc(gameState.value!['gameId'])
           .get();
 
-      if (gameDoc.exists) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(
-            context,
-            '/game',
-            arguments: gameState.value,
-          );
-        }
-      }
+      // if (gameDoc.exists) {
+      //   if (mounted) {
+      //     Navigator.pushReplacementNamed(
+      //       context,
+      //       '/game',
+      //       arguments: gameState.value,
+      //     );
+      //   }
+      // }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     // Listen for accepted game requests
-    ref.listen(acceptedGameRequestProvider, (previous, next) async {
-      if (next.value != null) {
-        // Navigate for any valid game request
-        final gameDoc = await FirebaseFirestore.instance
-            .collection('games')
-            .doc(next.value!['gameId'])
-            .get();
+    // ref.listen(acceptedGameRequestProvider, (previous, next) async {
+    //   if (next.value != null) {
+    //     // Navigate for any valid game request
+    //     final gameDoc = await FirebaseFirestore.instance
+    //         .collection('games')
+    //         .doc(next.value!['gameId'])
+    //         .get();
 
-        if (gameDoc.exists && context.mounted) {
-          Navigator.pushReplacementNamed(
-            context,
-            '/game',
-            arguments: next.value,
-          );
-        }
-      }
-    });
+    //     if (gameDoc.exists && context.mounted) {
+    //       Navigator.pushReplacementNamed(
+    //         context,
+    //         '/game',
+    //         arguments: next.value,
+    //       );
+    //     }
+    //   }
+    // });
 
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),

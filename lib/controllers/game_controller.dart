@@ -7,26 +7,12 @@ import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/models/online_player_model.dart';
 
 final gameControllerProvider =
-    StateNotifierProvider<GameController, AsyncValue<GameModel>>((ref) {
-  return GameController(
+    StateNotifierProvider<GameController, AsyncValue<GameModel>>(
+  (ref) => GameController(
     FirebaseFirestore.instance,
     FirebaseAuth.instance,
-  );
-});
-
-// Provider to listen for rematch decline
-final rematchDeclinedProvider = StreamProvider<bool>((ref) {
-  final gameState = ref.watch(gameControllerProvider);
-  final gameId = gameState.value?.gameId;
-
-  if (gameId == null) return Stream.value(false);
-
-  return FirebaseFirestore.instance
-      .collection('games')
-      .doc(gameId)
-      .snapshots()
-      .map((snapshot) => snapshot.data()?['rematchDeclined'] == true);
-});
+  ),
+);
 
 class GameController extends StateNotifier<AsyncValue<GameModel>> {
   GameController(this._firestore, this._auth)
@@ -210,17 +196,17 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
         (isPlayer2 && game.currentPlayer == Player.O);
   }
 
-  void resetGame() {
-    final currentState = state.value;
-    if (currentState?.gameId != null) {
-      _firestore
-          .collection('games')
-          .doc(currentState!.gameId)
-          .update(GameModel.initial().toMap());
-    } else {
-      state = AsyncValue.data(GameModel.initial());
-    }
-  }
+  // void resetGame() {
+  //   final currentState = state.value;
+  //   if (currentState?.gameId != null) {
+  //     _firestore
+  //         .collection('games')
+  //         .doc(currentState!.gameId)
+  //         .update(GameModel.initial().toMap());
+  //   } else {
+  //     state = AsyncValue.data(GameModel.initial());
+  //   }
+  // }
 
   (Player?, List<List<int>>?) _checkWinner(List<List<Player>> board) {
     // Check rows
@@ -294,72 +280,6 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
       }
     }
     return true;
-  }
-
-  Future<void> requestRematch(String gameId) async {
-    try {
-      await _firestore.collection('games').doc(gameId).update({
-        'rematchRequestedBy': _auth.currentUser?.uid,
-      });
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-    }
-  }
-
-  Future<void> respondToRematch(String gameId, bool accept) async {
-    try {
-      if (accept) {
-        // Reset the game
-        final currentState = state.value;
-        if (currentState == null) return;
-
-        final newGame = GameModel.initial().copyWith(
-          gameId: gameId,
-          player1Id: currentState.player1Id,
-          player2Id: currentState.player2Id,
-          lastMoveTimestamp: DateTime.now(),
-        );
-
-        await _firestore.collection('games').doc(gameId).update({
-          ...newGame.toMap(),
-          'rematchRequestedBy': null, // Clear the rematch request
-          'rematchDeclined': false, // Reset rematch declined status
-          'playerLeft': null, // Reset player left status
-        });
-
-        // Update state directly to trigger UI update
-        state = AsyncValue.data(newGame);
-      } else {
-        // Update players' status and mark rematch as declined
-        final currentState = state.value;
-        if (currentState?.player1Id != null &&
-            currentState?.player2Id != null) {
-          final batch = _firestore.batch()
-            ..update(_firestore.collection('games').doc(gameId), {
-              'rematchRequestedBy': null,
-              'rematchDeclined': true,
-            })
-            ..update(
-                _firestore
-                    .collection('onlinePlayers')
-                    .doc(currentState!.player1Id),
-                {
-                  'status': OnlineStatus.online.toString(),
-                })
-            ..update(
-                _firestore
-                    .collection('onlinePlayers')
-                    .doc(currentState.player2Id),
-                {
-                  'status': OnlineStatus.online.toString(),
-                });
-
-          await batch.commit();
-        }
-      }
-    } catch (e) {
-      state = AsyncValue.error(e, StackTrace.current);
-    }
   }
 
   Future<void> leaveGame(String gameId, String playerId) async {

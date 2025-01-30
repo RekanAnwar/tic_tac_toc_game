@@ -85,19 +85,6 @@ class _GamePageState extends ConsumerState<GamePage> {
     final gameState = ref.watch(gameControllerProvider);
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
-    // Listen for rematch decline
-    ref.listen(rematchDeclinedProvider, (previous, next) {
-      if (next.value == true) {
-        // Show a message when rematch is declined
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Rematch was declined'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    });
-
     // Remove auto-navigation on game over
     // Instead, show appropriate messages and exit button
 
@@ -115,21 +102,6 @@ class _GamePageState extends ConsumerState<GamePage> {
             onPressed: () => _exitGame(context),
           ),
           actions: [
-            if (gameState.value?.gameOver == true)
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () async {
-                  if (widget.gameId != null) {
-                    // Online game - request rematch
-                    await ref
-                        .read(gameControllerProvider.notifier)
-                        .requestRematch(widget.gameId!);
-                  } else {
-                    // Local game - reset immediately
-                    ref.read(gameControllerProvider.notifier).resetGame();
-                  }
-                },
-              ),
             if (widget.gameId != null) // Add exit button for online games
               IconButton(
                 icon: const Icon(Icons.exit_to_app),
@@ -198,48 +170,6 @@ class _GamePageState extends ConsumerState<GamePage> {
                   Navigator.of(context).pushReplacementNamed('/home');
                 },
                 child: const Text('Return to Home'),
-              ),
-            ],
-          ),
-        );
-      });
-    }
-
-    // Handle rematch request
-    if (game.rematchRequestedBy != null &&
-        game.rematchRequestedBy != currentUserId &&
-        game.gameOver) {
-      // Show rematch request dialog
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: const Text('Rematch Request'),
-            content: const Text('Your opponent wants to play again. Accept?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ref
-                      .read(gameControllerProvider.notifier)
-                      .respondToRematch(game.gameId!, false);
-                  Navigator.of(context).pushReplacementNamed('/home');
-                },
-                child: const Text('Decline'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await ref
-                      .read(gameControllerProvider.notifier)
-                      .respondToRematch(game.gameId!, true);
-                  // Re-initialize the game after accepting rematch
-                  if (mounted) {
-                    await _initializeGame();
-                  }
-                },
-                child: const Text('Accept'),
               ),
             ],
           ),

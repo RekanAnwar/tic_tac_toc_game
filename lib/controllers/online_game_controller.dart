@@ -271,8 +271,10 @@ class OnlineGameController
 
       if (!requestDoc.exists) return;
 
-      final request =
-          GameRequest.fromMap({...requestDoc.data()!, 'id': requestDoc.id});
+      final request = GameRequest.fromMap({
+        ...requestDoc.data()!,
+        'id': requestDoc.id,
+      });
 
       if (accept) {
         // Create a new game document with a flattened board representation
@@ -280,15 +282,15 @@ class OnlineGameController
           'player1Id': request.fromPlayerId,
           'player2Id': request.toPlayerId,
           'board': [
-            Player.none.toString(),
-            Player.none.toString(),
-            Player.none.toString(),
-            Player.none.toString(),
-            Player.none.toString(),
-            Player.none.toString(),
-            Player.none.toString(),
-            Player.none.toString(),
-            Player.none.toString(),
+            Player.none.index,
+            Player.none.index,
+            Player.none.index,
+            Player.none.index,
+            Player.none.index,
+            Player.none.index,
+            Player.none.index,
+            Player.none.index,
+            Player.none.index,
           ],
           'currentPlayer': Player.X.toString(),
           'gameOver': false,

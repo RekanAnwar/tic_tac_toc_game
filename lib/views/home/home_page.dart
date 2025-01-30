@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
+import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/views/home/widgets/game_requests.dart';
 import 'package:tic_tac_toc_game/views/home/widgets/online_players_list.dart';
 
@@ -51,7 +52,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             .doc(next.value!['gameId'])
             .get();
 
-        if (gameDoc.exists && context.mounted) {
+        final data = gameDoc.data() ?? {};
+        final game = GameModel.fromMap(data);
+
+        if (game.gameOver == false && context.mounted) {
           Navigator.pushReplacementNamed(
             context,
             '/game',

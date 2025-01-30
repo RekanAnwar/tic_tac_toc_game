@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-enum Player { X, O, none }
+enum Player { none, X, O }
 
 class GameModel extends Equatable {
   const GameModel({

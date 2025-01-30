@@ -50,7 +50,7 @@ class GameRequests extends ConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.check_circle,
                             color: Colors.green, size: 32),
-                        onPressed: () {
+                        onPressed: () async {
                           try {
                             ref
                                 .read(onlineGameControllerProvider.notifier)

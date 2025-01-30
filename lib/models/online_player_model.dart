@@ -73,6 +73,16 @@ class OnlinePlayerModel extends Equatable {
 }
 
 class GameRequest extends Equatable {
+  const GameRequest({
+    required this.id,
+    required this.fromPlayerId,
+    required this.toPlayerId,
+    required this.status,
+    required this.timestamp,
+    this.gameId,
+    this.isGameActive = false,
+  });
+
   factory GameRequest.fromMap(Map<String, dynamic> map) {
     return GameRequest(
       id: map['id'] as String,
@@ -84,16 +94,9 @@ class GameRequest extends Equatable {
       ),
       timestamp: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
       gameId: map['gameId'] as String?,
+      isGameActive: map['isGameActive'] as bool? ?? false,
     );
   }
-  const GameRequest({
-    required this.id,
-    required this.fromPlayerId,
-    required this.toPlayerId,
-    required this.status,
-    required this.timestamp,
-    this.gameId,
-  });
 
   final String id;
   final String fromPlayerId;
@@ -101,6 +104,7 @@ class GameRequest extends Equatable {
   final GameRequestStatus status;
   final DateTime timestamp;
   final String? gameId;
+  final bool isGameActive;
 
   Map<String, dynamic> toMap() {
     return {
@@ -110,6 +114,7 @@ class GameRequest extends Equatable {
       'status': status.toString(),
       'timestamp': timestamp.millisecondsSinceEpoch,
       'gameId': gameId,
+      'isGameActive': isGameActive,
     };
   }
 
@@ -120,6 +125,7 @@ class GameRequest extends Equatable {
     GameRequestStatus? status,
     DateTime? timestamp,
     String? gameId,
+    bool? isGameActive,
   }) {
     return GameRequest(
       id: id ?? this.id,
@@ -128,12 +134,20 @@ class GameRequest extends Equatable {
       status: status ?? this.status,
       timestamp: timestamp ?? this.timestamp,
       gameId: gameId ?? this.gameId,
+      isGameActive: isGameActive ?? this.isGameActive,
     );
   }
 
   @override
-  List<Object?> get props =>
-      [id, fromPlayerId, toPlayerId, status, timestamp, gameId];
+  List<Object?> get props => [
+        id,
+        fromPlayerId,
+        toPlayerId,
+        status,
+        timestamp,
+        gameId,
+        isGameActive,
+      ];
 }
 
 enum GameRequestStatus { pending, accepted, rejected, cancelled }

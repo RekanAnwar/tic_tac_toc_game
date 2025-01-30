@@ -48,7 +48,7 @@ class _LifecycleEventHandlerState extends State<LifecycleEventHandler>
       await FirebaseFirestore.instance
           .collection('onlinePlayers')
           .doc(user.uid)
-          .set({
+          .update({
         'id': user.uid,
         'email': user.email,
         'status': OnlineStatus.offline.toString(),
@@ -67,7 +67,7 @@ class _LifecycleEventHandlerState extends State<LifecycleEventHandler>
       await FirebaseFirestore.instance
           .collection('onlinePlayers')
           .doc(user.uid)
-          .set({
+          .update({
         'id': user.uid,
         'email': user.email,
         'status': OnlineStatus.online.toString(),

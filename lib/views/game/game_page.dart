@@ -96,12 +96,13 @@ class _GamePageState extends ConsumerState<GamePage> {
                     await FirebaseFirestore.instance
                         .collection('onlinePlayers')
                         .doc(currentUser.id)
-                        .set({
+                        .update({
                       'id': currentUser.id,
                       'email': currentUser.email,
                       'status': OnlineStatus.online.toString(),
                       'lastSeen': DateTime.now().millisecondsSinceEpoch,
                     });
+
 
                     if (!context.mounted) return;
 

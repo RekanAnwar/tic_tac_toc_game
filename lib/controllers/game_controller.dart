@@ -76,7 +76,6 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
     final currentState = state.value;
     if (currentState == null) return;
 
-
     // For online game
     if (!_canMakeMove(currentState)) return;
 
@@ -107,6 +106,17 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
         final player1Won = winner == Player.X;
         final player2Won = winner == Player.O;
 
+        // Find and update the game request
+        final requests = await _firestore
+            .collection('gameRequests')
+            .where('gameId', isEqualTo: currentState.gameId)
+            .limit(1)
+            .get();
+
+        if (requests.docs.isNotEmpty) {
+          await requests.docs.first.reference.update({'isGameActive': false});
+        }
+
         // Update player 1 stats
         if (currentState.player1Id != null) {
           final doc1 = await _firestore
@@ -114,16 +124,15 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
               .doc(currentState.player1Id)
               .get();
 
-          if (doc1.exists) {
-            final currentStats = doc1.data() ?? {};
-            await _firestore
-                .collection('onlinePlayers')
-                .doc(currentState.player1Id)
-                .update({
-              'totalGames': (currentStats['totalGames'] ?? 0) + 1,
-              'wins': (currentStats['wins'] ?? 0) + (player1Won ? 1 : 0),
-            });
-          }
+          final currentStats1 = doc1.data() ?? {};
+          await _firestore
+              .collection('onlinePlayers')
+              .doc(currentState.player1Id)
+              .set({
+            ...currentStats1,
+            'totalGames': (currentStats1['totalGames'] ?? 0) + 1,
+            'wins': (currentStats1['wins'] ?? 0) + (player1Won ? 1 : 0),
+          }, SetOptions(merge: true));
         }
 
         // Update player 2 stats
@@ -133,16 +142,15 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
               .doc(currentState.player2Id)
               .get();
 
-          if (doc2.exists) {
-            final currentStats = doc2.data() ?? {};
-            await _firestore
-                .collection('onlinePlayers')
-                .doc(currentState.player2Id)
-                .update({
-              'totalGames': (currentStats['totalGames'] ?? 0) + 1,
-              'wins': (currentStats['wins'] ?? 0) + (player2Won ? 1 : 0),
-            });
-          }
+          final currentStats2 = doc2.data() ?? {};
+          await _firestore
+              .collection('onlinePlayers')
+              .doc(currentState.player2Id)
+              .set({
+            ...currentStats2,
+            'totalGames': (currentStats2['totalGames'] ?? 0) + 1,
+            'wins': (currentStats2['wins'] ?? 0) + (player2Won ? 1 : 0),
+          }, SetOptions(merge: true));
         }
       }
     } catch (e) {
@@ -249,6 +257,17 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
       final game = GameModel.fromMap({...gameDoc.data()!, 'gameId': gameId});
 
       final batch = _firestore.batch();
+
+      // Find the game request
+      final requests = await _firestore
+          .collection('gameRequests')
+          .where('gameId', isEqualTo: gameId)
+          .limit(1)
+          .get();
+
+      if (requests.docs.isNotEmpty) {
+        batch.update(requests.docs.first.reference, {'isGameActive': false});
+      }
 
       // If game is already over, just update player statuses
       if (game.gameOver) {

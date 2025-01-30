@@ -48,30 +48,29 @@ final acceptedGameRequestProvider = StreamProvider<GameModel?>(
           Filter('fromPlayerId', isEqualTo: auth.currentUser!.uid),
           Filter('toPlayerId', isEqualTo: auth.currentUser!.uid),
         ))
+        .where(Filter.and(
+          Filter('status', isEqualTo: GameRequestStatus.accepted.toString()),
+          Filter('gameId', isNull: false),
+          Filter('isGameActive', isEqualTo: true),
+        ))
+        .limit(1)
         .snapshots()
         .asyncMap((snapshot) async {
       if (snapshot.docs.isEmpty) return null;
 
-      final docs = snapshot.docs;
+      final doc = snapshot.docs.first;
+      final request = GameRequest.fromMap({...doc.data(), 'id': doc.id});
+      final gameDoc =
+          await firestore.collection('games').doc(request.gameId).get();
 
-      for (final doc in docs) {
-        final request = GameRequest.fromMap({...doc.data(), 'id': doc.id});
-
-        if (request.status == GameRequestStatus.accepted &&
-            request.gameId != null) {
-          final gameDoc =
-              await firestore.collection('games').doc(request.gameId).get();
-          final game = GameModel.fromMap(
-            {...gameDoc.data() ?? {}, 'gameId': request.gameId},
-          );
-
-          if (game.gameOver == false && game.winner == null) {
-            return game;
-          }
-        }
+      if (!gameDoc.exists) {
+        // Update the game request to mark it as inactive
+        await doc.reference.update({'isGameActive': false});
+        return null;
       }
 
-      return null;
+      return GameModel.fromMap(
+          {...gameDoc.data() ?? {}, 'gameId': request.gameId});
     });
   },
 );
@@ -116,7 +115,7 @@ class OnlineGameController
       await _firestore
           .collection('onlinePlayers')
           .doc(_auth.currentUser!.uid)
-          .set({
+          .update({
         'id': _auth.currentUser!.uid,
         'email': _auth.currentUser!.email,
         'status': OnlineStatus.online.toString(),
@@ -135,7 +134,7 @@ class OnlineGameController
       await _firestore
           .collection('onlinePlayers')
           .doc(_auth.currentUser!.uid)
-          .set({
+          .update({
         'id': _auth.currentUser!.uid,
         'email': _auth.currentUser!.email,
         'status': OnlineStatus.offline.toString(),
@@ -301,6 +300,7 @@ class OnlineGameController
           ..update(_firestore.collection('gameRequests').doc(requestId), {
             'status': GameRequestStatus.accepted.toString(),
             'gameId': gameDoc.id,
+            'isGameActive': true,
           })
           ..update(
               // Update both players' status to inGame
@@ -316,6 +316,7 @@ class OnlineGameController
       } else {
         await _firestore.collection('gameRequests').doc(requestId).update({
           'status': GameRequestStatus.rejected.toString(),
+          'isGameActive': false,
         });
       }
     } catch (e) {

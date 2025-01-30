@@ -47,7 +47,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         final game = next.value!;
 
         if (context.mounted) {
-          Navigator.pushReplacementNamed(
+          Navigator.pushNamed(
             context,
             '/game',
             arguments: game.toMap(),

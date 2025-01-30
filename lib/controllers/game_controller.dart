@@ -22,10 +22,6 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
   final FirebaseAuth _auth;
   StreamSubscription? _gameSubscription;
 
-  void startLocalGame() {
-    state = AsyncValue.data(GameModel.initial());
-  }
-
   Future<void> startOnlineGame(
     String gameId,
     String player1Id,
@@ -80,11 +76,6 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
     final currentState = state.value;
     if (currentState == null) return;
 
-    // For local game
-    if (currentState.gameId == null) {
-      _makeLocalMove(row, col);
-      return;
-    }
 
     // For online game
     if (!_canMakeMove(currentState)) return;
@@ -119,13 +110,14 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
         // Update player 1 stats
         if (currentState.player1Id != null) {
           final doc1 = await _firestore
-              .collection('users')
+              .collection('onlinePlayers')
               .doc(currentState.player1Id)
               .get();
+
           if (doc1.exists) {
             final currentStats = doc1.data() ?? {};
             await _firestore
-                .collection('users')
+                .collection('onlinePlayers')
                 .doc(currentState.player1Id)
                 .update({
               'totalGames': (currentStats['totalGames'] ?? 0) + 1,
@@ -137,13 +129,14 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
         // Update player 2 stats
         if (currentState.player2Id != null) {
           final doc2 = await _firestore
-              .collection('users')
+              .collection('onlinePlayers')
               .doc(currentState.player2Id)
               .get();
+
           if (doc2.exists) {
             final currentStats = doc2.data() ?? {};
             await _firestore
-                .collection('users')
+                .collection('onlinePlayers')
                 .doc(currentState.player2Id)
                 .update({
               'totalGames': (currentStats['totalGames'] ?? 0) + 1,
@@ -155,31 +148,6 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
     }
-  }
-
-  void _makeLocalMove(int row, int col) {
-    final currentState = state.value;
-    if (currentState == null) return;
-
-    if (currentState.board[row][col] != Player.none || currentState.gameOver) {
-      return;
-    }
-
-    final newBoard = List<List<Player>>.from(currentState.board);
-    newBoard[row][col] = currentState.currentPlayer;
-
-    final (winner, winningLine) = _checkWinner(newBoard);
-    final gameOver = winner != null || _isBoardFull(newBoard);
-
-    state = AsyncValue.data(currentState.copyWith(
-      board: newBoard,
-      currentPlayer:
-          currentState.currentPlayer == Player.X ? Player.O : Player.X,
-      gameOver: gameOver,
-      winner: winner,
-      winningLine: winningLine,
-      lastMoveTimestamp: DateTime.now(),
-    ));
   }
 
   bool _canMakeMove(GameModel game) {

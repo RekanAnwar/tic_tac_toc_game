@@ -1,6 +1,6 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tic_tac_toc_game/controllers/auth_controller.dart';
 import 'package:tic_tac_toc_game/controllers/game_controller.dart';
 import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
 import 'package:tic_tac_toc_game/extensions/context_extension.dart';
@@ -43,38 +43,6 @@ class _GamePageState extends ConsumerState<GamePage> {
             widget.game.player1Id!,
             widget.game.player2Id!,
           );
-    } else {
-      ref.read(gameControllerProvider.notifier).startLocalGame();
-    }
-  }
-
-  Future<void> _exitGame(BuildContext context) async {
-    final game = ref.read(gameControllerProvider).value;
-    if (game?.gameId == null) {
-      Navigator.of(context).pushReplacementNamed('/home');
-      return;
-    }
-
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-    if (currentUserId == null) return;
-
-    try {
-      await ref
-          .read(gameControllerProvider.notifier)
-          .leaveGame(game!.gameId!, currentUserId);
-
-      if (context.mounted) {
-        // Use pop until to ensure we go back to home
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error leaving game. Please try again.'),
-          ),
-        );
-      }
     }
   }
 
@@ -83,17 +51,33 @@ class _GamePageState extends ConsumerState<GamePage> {
     final game = widget.game;
 
     final gameState = ref.watch(gameControllerProvider);
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final currentUserId = ref.watch(authControllerProvider).value?.id;
 
-    // Remove auto-navigation on game over
-    // Instead, show appropriate messages and exit button
-
-    // ignore: deprecated_member_use
-    return WillPopScope(
-      onWillPop: () async {
-        await _exitGame(context);
-        return false;
+    ref.listen(
+      gameControllerProvider,
+      (previous, next) {
+        if (next.value != null && next.value!.gameOver) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Game Over'),
+              content: const Text('The game is over.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context)
+                    ..pop()
+                    ..pop(),
+                  child: const Text('Return to Home'),
+                ),
+              ],
+            ),
+          );
+        }
       },
+    );
+
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         appBar: AppBar(
           leadingWidth: 0,

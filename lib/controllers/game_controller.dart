@@ -56,7 +56,7 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
           final data = snapshot.data()!;
 
           if (data['board'] != null) {
-            final List<dynamic> rawBoard = List<dynamic>.from(data['board']);
+            final rawBoard = List<dynamic>.from(data['board']);
 
             state = AsyncValue.data(
               GameModel.fromMap(
@@ -198,18 +198,6 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
     return (isPlayer1 && game.currentPlayer == Player.X) ||
         (isPlayer2 && game.currentPlayer == Player.O);
   }
-
-  // void resetGame() {
-  //   final currentState = state.value;
-  //   if (currentState?.gameId != null) {
-  //     _firestore
-  //         .collection('games')
-  //         .doc(currentState!.gameId)
-  //         .update(GameModel.initial().toMap());
-  //   } else {
-  //     state = AsyncValue.data(GameModel.initial());
-  //   }
-  // }
 
   (Player?, List<List<int>>?) _checkWinner(List<List<Player>> board) {
     // Check rows

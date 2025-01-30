@@ -96,11 +96,10 @@ class _GamePageState extends ConsumerState<GamePage> {
       },
       child: Scaffold(
         appBar: AppBar(
+          leadingWidth: 0,
+          centerTitle: true,
+          leading: const SizedBox.shrink(),
           title: const Text('Tic Tac Toe'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => _exitGame(context),
-          ),
           actions: [
             if (game.gameId != null) // Add exit button for online games
               IconButton(
@@ -148,7 +147,10 @@ class _GamePageState extends ConsumerState<GamePage> {
   }
 
   Widget _buildGameBody(
-      BuildContext context, GameModel game, String? currentUserId) {
+    BuildContext context,
+    GameModel game,
+    String? currentUserId,
+  ) {
     final isOnlineGame = game.gameId != null;
     final isCurrentPlayerTurn = !isOnlineGame ||
         (game.currentPlayer == Player.X && game.player1Id == currentUserId) ||

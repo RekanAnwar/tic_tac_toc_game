@@ -28,7 +28,7 @@ class GameModel extends Equatable {
 
   factory GameModel.fromMap(Map<String, dynamic> map) {
     // Convert flat board array to 2D array
-    final List<dynamic> rawBoard =
+    final rawBoard =
         map['board'] as List? ?? List.generate(9, (_) => Player.none.index);
 
     final board = [

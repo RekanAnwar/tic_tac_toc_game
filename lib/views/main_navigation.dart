@@ -32,15 +32,15 @@ class _MainNavigationState extends State<MainNavigation> {
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.games),
-            label: 'Games',
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
           ),
           NavigationDestination(
             icon: Icon(Icons.leaderboard),
             label: 'Rank',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.account_circle_outlined),
             label: 'Profile',
           ),
         ],

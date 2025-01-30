@@ -26,15 +26,15 @@ class _HomePageState extends ConsumerState<HomePage> {
           .doc(gameState.value!['gameId'])
           .get();
 
-      if (gameDoc.exists) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(
-            context,
-            '/game',
-            arguments: gameState.value,
-          );
-        }
-      }
+      // if (gameDoc.exists) {
+      //   if (mounted) {
+      //     Navigator.pushReplacementNamed(
+      //       context,
+      //       '/game',
+      //       arguments: gameState.value,
+      //     );
+      //   }
+      // }
     }
   }
 

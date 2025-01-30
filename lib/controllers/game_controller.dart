@@ -64,10 +64,17 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
         _firestore.collection('games').doc(gameId).snapshots().listen(
       (snapshot) {
         if (snapshot.exists) {
-          state = AsyncValue.data(GameModel.fromMap({
-            ...snapshot.data()!,
-            'gameId': snapshot.id,
-          }));
+          final data = snapshot.data()!;
+
+          // Ensure we have a valid board data
+          if (data['board'] != null) {
+            final List<dynamic> rawBoard = List<dynamic>.from(data['board']);
+            state = AsyncValue.data(GameModel.fromMap({
+              ...data,
+              'board': rawBoard, // Pass the raw board data directly
+              'gameId': snapshot.id,
+            }));
+          }
         }
       },
       onError: (error) {
@@ -99,68 +106,58 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
       final (winner, winningLine) = _checkWinner(newBoard);
       final gameOver = winner != null || _isBoardFull(newBoard);
 
-      final updatedGame = currentState.copyWith(
-        board: newBoard,
-        currentPlayer:
-            currentState.currentPlayer == Player.X ? Player.O : Player.X,
-        gameOver: gameOver,
-        winner: winner,
-        winningLine: winningLine,
-        lastMoveTimestamp: DateTime.now(),
-      );
-
-      // Convert 2D board to flat array for Firestore
-      final flatBoard = [
-        for (var row in newBoard)
-          for (var cell in row) cell.toString()
-      ];
-
-      final updateData = {
-        'board': flatBoard,
-        'currentPlayer': updatedGame.currentPlayer.toString(),
+      // Update game state first
+      await _firestore.collection('games').doc(currentState.gameId).update({
+        'board': _flattenBoard(newBoard),
+        'currentPlayer': currentState.currentPlayer == Player.X
+            ? Player.O.index
+            : Player.X.index,
+        'winner': winner?.index,
+        'winningLine': winningLine?.map((pos) => pos[0] * 3 + pos[1]).toList(),
+        'lastMoveTimestamp': DateTime.now().toIso8601String(),
         'gameOver': gameOver,
-        'lastMoveTimestamp':
-            updatedGame.lastMoveTimestamp?.millisecondsSinceEpoch,
-      };
+      });
 
-      if (winner != null) {
-        updateData['winner'] = winner.toString();
-        if (winningLine != null) {
-          updateData['winningLine'] =
-              winningLine.expand((cell) => [cell[0], cell[1]]).toList();
+      // Then update statistics if game is over
+      if (gameOver) {
+        final player1Won = winner == Player.X;
+        final player2Won = winner == Player.O;
+
+        // Update player 1 stats
+        if (currentState.player1Id != null) {
+          final doc1 = await _firestore
+              .collection('users')
+              .doc(currentState.player1Id)
+              .get();
+          if (doc1.exists) {
+            final currentStats = doc1.data() ?? {};
+            await _firestore
+                .collection('users')
+                .doc(currentState.player1Id)
+                .update({
+              'totalGames': (currentStats['totalGames'] ?? 0) + 1,
+              'wins': (currentStats['wins'] ?? 0) + (player1Won ? 1 : 0),
+            });
+          }
         }
-      } else if (gameOver) {
-        // It's a draw
-        updateData['winner'] = null;
-        updateData['winningLine'] = null;
-      }
 
-      await _firestore
-          .collection('games')
-          .doc(currentState.gameId)
-          .update(updateData);
-
-      // Update players' status when game is over
-      if (gameOver &&
-          currentState.player1Id != null &&
-          currentState.player2Id != null) {
-        final batch = _firestore.batch()
-          ..update(
-              _firestore
-                  .collection('onlinePlayers')
-                  .doc(currentState.player1Id),
-              {
-                'status': OnlineStatus.online.toString(),
-              })
-          ..update(
-              _firestore
-                  .collection('onlinePlayers')
-                  .doc(currentState.player2Id),
-              {
-                'status': OnlineStatus.online.toString(),
-              });
-
-        await batch.commit();
+        // Update player 2 stats
+        if (currentState.player2Id != null) {
+          final doc2 = await _firestore
+              .collection('users')
+              .doc(currentState.player2Id)
+              .get();
+          if (doc2.exists) {
+            final currentStats = doc2.data() ?? {};
+            await _firestore
+                .collection('users')
+                .doc(currentState.player2Id)
+                .update({
+              'totalGames': (currentStats['totalGames'] ?? 0) + 1,
+              'wins': (currentStats['wins'] ?? 0) + (player2Won ? 1 : 0),
+            });
+          }
+        }
       }
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
@@ -368,35 +365,56 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
 
       final game = GameModel.fromMap({...gameDoc.data()!, 'gameId': gameId});
 
-      // Determine the winner (the player who didn't leave)
-      final winner = playerId == game.player1Id ? Player.O : Player.X;
+      final batch = _firestore.batch();
 
-      // Update game document to mark player as left and set game as over
-      final batch = _firestore.batch()
-        ..update(_firestore.collection('games').doc(gameId), {
+      // If game is already over, just update player statuses
+      if (game.gameOver) {
+        if (game.player1Id != null) {
+          batch.update(
+              _firestore.collection('onlinePlayers').doc(game.player1Id),
+              {'status': OnlineStatus.online.toString()});
+        }
+        if (game.player2Id != null) {
+          batch.update(
+              _firestore.collection('onlinePlayers').doc(game.player2Id),
+              {'status': OnlineStatus.online.toString()});
+        }
+      } else {
+        // If game is not over, mark as forfeit
+        final winner = playerId == game.player1Id ? Player.O : Player.X;
+        batch.update(_firestore.collection('games').doc(gameId), {
           'playerLeft': playerId,
           'gameOver': true,
-          'winner': winner.toString(),
+          'winner': winner.index,
         });
 
-      // Update both players' status to online
-      if (game.player1Id != null) {
-        batch.update(
-            _firestore.collection('onlinePlayers').doc(game.player1Id), {
-          'status': OnlineStatus.online.toString(),
-        });
-      }
-      if (game.player2Id != null) {
-        batch.update(
-            _firestore.collection('onlinePlayers').doc(game.player2Id), {
-          'status': OnlineStatus.online.toString(),
-        });
+        // Update player statuses
+        if (game.player1Id != null) {
+          batch.update(
+              _firestore.collection('onlinePlayers').doc(game.player1Id),
+              {'status': OnlineStatus.online.toString()});
+        }
+        if (game.player2Id != null) {
+          batch.update(
+              _firestore.collection('onlinePlayers').doc(game.player2Id),
+              {'status': OnlineStatus.online.toString()});
+        }
       }
 
       await batch.commit();
+
+      // Cancel the game subscription
+      _gameSubscription?.cancel();
+      // Reset the game state to initial
+      state = AsyncValue.data(GameModel.initial());
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
     }
+  }
+
+  // Helper method to flatten the board
+  List<int> _flattenBoard(List<List<Player>> board) {
+    return board.expand((row) => row.map((cell) => cell.index)).toList();
   }
 
   @override

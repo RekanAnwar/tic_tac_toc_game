@@ -64,8 +64,10 @@ class _GamePageState extends ConsumerState<GamePage> {
       await ref
           .read(gameControllerProvider.notifier)
           .leaveGame(game!.gameId!, currentUserId);
+
       if (context.mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
+        // Use pop until to ensure we go back to home
+        Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
       if (context.mounted) {
@@ -102,64 +104,15 @@ class _GamePageState extends ConsumerState<GamePage> {
     // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
-        final game = gameState.value;
-        if (game?.gameId == null) {
-          return true; // Allow back navigation for local games
-        }
-        final shouldPop = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Leave Game?'),
-            content: const Text(
-                'Are you sure you want to leave the game? The other player will be notified.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context, true);
-                  await _exitGame(context);
-                },
-                child: const Text('Leave'),
-              ),
-            ],
-          ),
-        );
-        return shouldPop ?? false;
+        await _exitGame(context);
+        return false;
       },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Tic Tac Toe'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () async {
-              final shouldExit = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Leave Game?'),
-                  content: const Text(
-                      'Are you sure you want to leave the game? The other player will be notified.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.pop(context, true);
-                        await _exitGame(context);
-                      },
-                      child: const Text('Leave'),
-                    ),
-                  ],
-                ),
-              );
-              if ((shouldExit ?? false) && context.mounted) {
-                await _exitGame(context);
-              }
-            },
+            onPressed: () => _exitGame(context),
           ),
           actions: [
             if (gameState.value?.gameOver == true)

@@ -30,47 +30,33 @@ class GameModel extends Equatable {
 
   factory GameModel.fromMap(Map<String, dynamic> map) {
     // Convert flat board array to 2D array
-    final flatBoard = (map['board'] as List)
-        .map((cell) => Player.values.firstWhere(
-              (p) => p.toString() == cell,
-              orElse: () => Player.none,
-            ))
-        .toList();
+    final List<dynamic> rawBoard =
+        map['board'] as List? ?? List.generate(9, (_) => Player.none.index);
 
-    final board =
-        List.generate(3, (i) => List.generate(3, (j) => flatBoard[i * 3 + j]));
-
-    // Convert flat winning line back to 2D array if it exists
-    final flatWinningLine = map['winningLine'] as List?;
-    final winningLine = flatWinningLine != null
-        ? List.generate(
-            flatWinningLine.length ~/ 2,
-            (i) => [
-              flatWinningLine[i * 2] as int,
-              flatWinningLine[i * 2 + 1] as int,
-            ],
-          )
-        : null;
+    final board = [
+      [for (int i = 0; i < 3; i++) Player.values[rawBoard[i] as int]],
+      [for (int i = 3; i < 6; i++) Player.values[rawBoard[i] as int]],
+      [for (int i = 6; i < 9; i++) Player.values[rawBoard[i] as int]],
+    ];
 
     return GameModel(
       board: board,
-      currentPlayer: Player.values.firstWhere(
-        (p) => p.toString() == map['currentPlayer'],
-        orElse: () => Player.X,
-      ),
+      currentPlayer: map['currentPlayer'] != null
+          ? Player.values[map['currentPlayer'] as int]
+          : Player.X,
       gameOver: map['gameOver'] ?? false,
-      winner: map['winner'] != null
-          ? Player.values.firstWhere(
-              (p) => p.toString() == map['winner'],
-              orElse: () => Player.none,
-            )
-          : null,
-      winningLine: winningLine,
+      winner:
+          map['winner'] != null ? Player.values[map['winner'] as int] : null,
+      winningLine: (map['winningLine'] as List?)?.map((pos) {
+        final row = (pos as int) ~/ 3;
+        final col = pos % 3;
+        return <int>[row, col];
+      }).toList(),
       gameId: map['gameId'],
       player1Id: map['player1Id'],
       player2Id: map['player2Id'],
       lastMoveTimestamp: map['lastMoveTimestamp'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['lastMoveTimestamp'])
+          ? DateTime.tryParse(map['lastMoveTimestamp'])
           : null,
       rematchRequestedBy: map['rematchRequestedBy'],
       rematchDeclined: map['rematchDeclined'] ?? false,
@@ -92,26 +78,20 @@ class GameModel extends Equatable {
   final String? playerLeft;
 
   Map<String, dynamic> toMap() {
-    // Convert 2D board array to flat array
-    final flatBoard = [
-      for (var row in board)
-        for (var cell in row) cell.toString()
-    ];
-
-    // Convert winning line to flat array if it exists
-    final flatWinningLine =
-        winningLine?.expand((cell) => [cell[0], cell[1]]).toList();
+    // Convert 2D board to flat array of indices
+    final flatBoard =
+        board.expand((row) => row.map((cell) => cell.index)).toList();
 
     return {
       'board': flatBoard,
-      'currentPlayer': currentPlayer.toString(),
+      'currentPlayer': currentPlayer.index,
       'gameOver': gameOver,
-      'winner': winner?.toString(),
-      'winningLine': flatWinningLine,
+      'winner': winner?.index,
+      'winningLine': winningLine?.map((pos) => pos[0] * 3 + pos[1]).toList(),
       'gameId': gameId,
       'player1Id': player1Id,
       'player2Id': player2Id,
-      'lastMoveTimestamp': lastMoveTimestamp?.millisecondsSinceEpoch,
+      'lastMoveTimestamp': lastMoveTimestamp?.toIso8601String(),
       'rematchRequestedBy': rematchRequestedBy,
       'rematchDeclined': rematchDeclined,
       'playerLeft': playerLeft,

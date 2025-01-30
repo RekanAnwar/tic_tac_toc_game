@@ -27,7 +27,10 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
   }
 
   Future<void> startOnlineGame(
-      String gameId, String player1Id, String player2Id) async {
+    String gameId,
+    String player1Id,
+    String player2Id,
+  ) async {
     try {
       final game = GameModel.initial().copyWith(
         gameId: gameId,

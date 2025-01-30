@@ -1,8 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
-import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/views/home/widgets/game_requests.dart';
 import 'package:tic_tac_toc_game/views/home/widgets/online_players_list.dart';
 
@@ -46,20 +44,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     // Listen for accepted game requests
     ref.listen(acceptedGameRequestProvider, (previous, next) async {
       if (next.value != null) {
-        // Navigate for any valid game request
-        final gameDoc = await FirebaseFirestore.instance
-            .collection('games')
-            .doc(next.value!['gameId'])
-            .get();
+        final game = next.value!;
 
-        final data = gameDoc.data() ?? {};
-        final game = GameModel.fromMap(data);
-
-        if (game.gameOver == false && context.mounted) {
+        if (context.mounted) {
           Navigator.pushReplacementNamed(
             context,
             '/game',
-            arguments: next.value,
+            arguments: game.toMap(),
           );
         }
       }

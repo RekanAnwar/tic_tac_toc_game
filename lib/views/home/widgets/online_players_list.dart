@@ -38,12 +38,15 @@ class OnlinePlayersList extends ConsumerWidget {
                 subtitle: Text(player.status.text),
                 trailing: player.status == OnlineStatus.online
                     ? ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (currentUserId != null) {
                             try {
-                              ref
+                              await ref
                                   .read(onlineGameControllerProvider.notifier)
                                   .sendGameRequest(player.id);
+
+                              if (!context.mounted) return;
+
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Game request sent!'),
@@ -51,10 +54,8 @@ class OnlinePlayersList extends ConsumerWidget {
                               );
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                      'Failed to send game request. Please try again.'),
-                                  backgroundColor: Colors.red,
+                                SnackBar(
+                                  content: Text(e.toString().split(':')[1]),
                                 ),
                               );
                             }

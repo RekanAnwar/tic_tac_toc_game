@@ -35,8 +35,7 @@ final gameRequestsProvider = StreamProvider<List<GameRequest>>(
   },
 );
 
-// Provider to listen for accepted game requests
-final acceptedGameRequestProvider = StreamProvider<Map<String, String>?>(
+final acceptedGameRequestProvider = StreamProvider<GameModel?>(
   (ref) {
     final auth = FirebaseAuth.instance;
     final firestore = FirebaseFirestore.instance;
@@ -53,24 +52,25 @@ final acceptedGameRequestProvider = StreamProvider<Map<String, String>?>(
         .asyncMap((snapshot) async {
       if (snapshot.docs.isEmpty) return null;
 
-      final doc = snapshot.docs.first;
-      final request = GameRequest.fromMap({...doc.data(), 'id': doc.id});
+      final docs = snapshot.docs;
 
-      // Only proceed if the request is accepted and has a game ID
-      if (request.status == GameRequestStatus.accepted &&
-          request.gameId != null) {
-        // Verify that the game exists
-        final gameDoc =
-            await firestore.collection('games').doc(request.gameId).get();
+      for (final doc in docs) {
+        final request = GameRequest.fromMap({...doc.data(), 'id': doc.id});
 
-        if (gameDoc.exists) {
-          return {
-            'gameId': request.gameId!,
-            'player1Id': request.fromPlayerId,
-            'player2Id': request.toPlayerId,
-          };
+        if (request.status == GameRequestStatus.accepted &&
+            request.gameId != null) {
+          final gameDoc =
+              await firestore.collection('games').doc(request.gameId).get();
+          final game = GameModel.fromMap(
+            {...gameDoc.data() ?? {}, 'gameId': request.gameId},
+          );
+
+          if (game.gameOver == false && game.winner == null) {
+            return game;
+          }
         }
       }
+
       return null;
     });
   },
@@ -258,8 +258,7 @@ class OnlineGameController
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       });
     } catch (e) {
-      log('Error sending game request: $e');
-      rethrow; // Rethrow to handle in UI
+      rethrow;
     }
   }
 
@@ -292,7 +291,7 @@ class OnlineGameController
             Player.none.index,
             Player.none.index,
           ],
-          'currentPlayer': Player.X.toString(),
+          'currentPlayer': Player.X.index,
           'gameOver': false,
           'lastMoveTimestamp': DateTime.now().millisecondsSinceEpoch,
         });
@@ -306,9 +305,7 @@ class OnlineGameController
           ..update(
               // Update both players' status to inGame
               _firestore.collection('onlinePlayers').doc(request.fromPlayerId),
-              {
-                'status': OnlineStatus.inGame.toString(),
-              })
+              {'status': OnlineStatus.inGame.toString()})
           ..update(
               _firestore.collection('onlinePlayers').doc(request.toPlayerId), {
             'status': OnlineStatus.inGame.toString(),

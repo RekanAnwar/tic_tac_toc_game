@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/firebase_options.dart';
+import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/utils/lifecycle_handler.dart';
 import 'package:tic_tac_toc_game/views/auth/auth_wrapper.dart';
 import 'package:tic_tac_toc_game/views/auth/login_page.dart';
@@ -58,13 +59,12 @@ class MyApp extends StatelessWidget {
             case '/home':
               return MaterialPageRoute(builder: (_) => const HomePage());
             case '/game':
-              final args = settings.arguments as Map<String, String>?;
+              final game = settings.arguments as Map<String, dynamic>;
+
+              final gameModel = GameModel.fromMap(game);
+
               return MaterialPageRoute(
-                builder: (_) => GamePage(
-                  gameId: args?['gameId'],
-                  player1Id: args?['player1Id'],
-                  player2Id: args?['player2Id'],
-                ),
+                builder: (_) => GamePage(game: gameModel),
               );
             default:
               return MaterialPageRoute(builder: (_) => const AuthWrapper());

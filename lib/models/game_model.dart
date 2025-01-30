@@ -13,8 +13,6 @@ class GameModel extends Equatable {
     this.player1Id,
     this.player2Id,
     this.lastMoveTimestamp,
-    this.rematchRequestedBy,
-    this.rematchDeclined = false,
     this.playerLeft,
   });
 
@@ -56,25 +54,21 @@ class GameModel extends Equatable {
       player1Id: map['player1Id'],
       player2Id: map['player2Id'],
       lastMoveTimestamp: map['lastMoveTimestamp'] != null
-          ? DateTime.tryParse(map['lastMoveTimestamp'])
+          ? DateTime.tryParse(map['lastMoveTimestamp'].toString())
           : null,
-      rematchRequestedBy: map['rematchRequestedBy'],
-      rematchDeclined: map['rematchDeclined'] ?? false,
       playerLeft: map['playerLeft'],
     );
   }
 
-  final List<List<Player>> board;
-  final Player currentPlayer;
-  final bool gameOver;
-  final Player? winner;
-  final List<List<int>>? winningLine;
   final String? gameId;
   final String? player1Id;
   final String? player2Id;
+  final bool gameOver;
+  final Player currentPlayer;
+  final List<List<Player>> board;
+  final Player? winner;
+  final List<List<int>>? winningLine;
   final DateTime? lastMoveTimestamp;
-  final String? rematchRequestedBy;
-  final bool rematchDeclined;
   final String? playerLeft;
 
   Map<String, dynamic> toMap() {
@@ -92,8 +86,6 @@ class GameModel extends Equatable {
       'player1Id': player1Id,
       'player2Id': player2Id,
       'lastMoveTimestamp': lastMoveTimestamp?.toIso8601String(),
-      'rematchRequestedBy': rematchRequestedBy,
-      'rematchDeclined': rematchDeclined,
       'playerLeft': playerLeft,
     };
   }
@@ -108,8 +100,6 @@ class GameModel extends Equatable {
     String? player1Id,
     String? player2Id,
     DateTime? lastMoveTimestamp,
-    String? rematchRequestedBy,
-    bool? rematchDeclined,
     String? playerLeft,
   }) {
     return GameModel(
@@ -122,8 +112,6 @@ class GameModel extends Equatable {
       player1Id: player1Id ?? this.player1Id,
       player2Id: player2Id ?? this.player2Id,
       lastMoveTimestamp: lastMoveTimestamp ?? this.lastMoveTimestamp,
-      rematchRequestedBy: rematchRequestedBy ?? this.rematchRequestedBy,
-      rematchDeclined: rematchDeclined ?? this.rematchDeclined,
       playerLeft: playerLeft ?? this.playerLeft,
     );
   }
@@ -139,8 +127,6 @@ class GameModel extends Equatable {
         player1Id,
         player2Id,
         lastMoveTimestamp,
-        rematchRequestedBy,
-        rematchDeclined,
         playerLeft,
       ];
 }

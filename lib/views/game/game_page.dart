@@ -10,14 +10,10 @@ import 'package:tic_tac_toc_game/views/game/widgets/game_cell.dart';
 class GamePage extends ConsumerStatefulWidget {
   const GamePage({
     super.key,
-    this.gameId,
-    this.player1Id,
-    this.player2Id,
+    required this.game,
   });
 
-  final String? gameId;
-  final String? player1Id;
-  final String? player2Id;
+  final GameModel game;
 
   @override
   ConsumerState<GamePage> createState() => _GamePageState();
@@ -27,9 +23,11 @@ class _GamePageState extends ConsumerState<GamePage> {
   @override
   void initState() {
     super.initState();
-    _initializeGame();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeGame();
+    });
     // Clean up any pending requests when entering a game
-    if (widget.gameId != null) {
+    if (widget.game.gameId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(onlineGameControllerProvider.notifier).cleanupGameRequests();
       });
@@ -37,13 +35,13 @@ class _GamePageState extends ConsumerState<GamePage> {
   }
 
   Future<void> _initializeGame() async {
-    if (widget.gameId != null &&
-        widget.player1Id != null &&
-        widget.player2Id != null) {
+    if (widget.game.gameId != null &&
+        widget.game.player1Id != null &&
+        widget.game.player2Id != null) {
       await ref.read(gameControllerProvider.notifier).startOnlineGame(
-            widget.gameId!,
-            widget.player1Id!,
-            widget.player2Id!,
+            widget.game.gameId!,
+            widget.game.player1Id!,
+            widget.game.player2Id!,
           );
     } else {
       ref.read(gameControllerProvider.notifier).startLocalGame();
@@ -82,6 +80,8 @@ class _GamePageState extends ConsumerState<GamePage> {
 
   @override
   Widget build(BuildContext context) {
+    final game = widget.game;
+
     final gameState = ref.watch(gameControllerProvider);
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -102,7 +102,7 @@ class _GamePageState extends ConsumerState<GamePage> {
             onPressed: () => _exitGame(context),
           ),
           actions: [
-            if (widget.gameId != null) // Add exit button for online games
+            if (game.gameId != null) // Add exit button for online games
               IconButton(
                 icon: const Icon(Icons.exit_to_app),
                 onPressed: () async {
@@ -121,7 +121,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                           onPressed: () async {
                             await ref
                                 .read(gameControllerProvider.notifier)
-                                .leaveGame(widget.gameId!, currentUserId!);
+                                .leaveGame(game.gameId!, currentUserId!);
                             if (context.mounted) {
                               Navigator.pop(context, true);
                               Navigator.of(context).pushReplacementNamed(
@@ -195,11 +195,6 @@ class _GamePageState extends ConsumerState<GamePage> {
             const Text(
               "Opponent's turn",
               style: TextStyle(fontSize: 24, color: Colors.orange),
-            ),
-          if (game.rematchRequestedBy == currentUserId)
-            const Text(
-              'Waiting for opponent to accept rematch...',
-              style: TextStyle(fontSize: 18, color: Colors.blue),
             ),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),

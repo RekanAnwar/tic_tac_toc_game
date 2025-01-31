@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/auth_controller.dart';
 import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
+import 'package:tic_tac_toc_game/views/home/PlayWithAi.dart';
 import 'package:tic_tac_toc_game/views/home/widgets/online_players_list.dart';
 
 class HomePage extends ConsumerStatefulWidget {
@@ -64,6 +65,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.green,
         title: const Text('Home'),
         actions: [
           IconButton(
@@ -84,6 +86,24 @@ class _HomePageState extends ConsumerState<HomePage> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
           ),
+          Container(
+              padding:
+                  const EdgeInsets.only(top: 2, bottom: 2, left: 20, right: 20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.0),
+                color: Colors.blueAccent,
+              ),
+              child: TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => TicTacToePage()));
+                  },
+                  child: const Text(
+                    'Play AI',
+                    style: TextStyle(color: Colors.white),
+                  ))),
           const Expanded(
             child: OnlinePlayersList(),
           ),

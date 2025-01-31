@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
+import 'package:tic_tac_toc_game/controllers/accepted_game_request_stream_provider.dart';
 import 'package:tic_tac_toc_game/views/home/widgets/game_requests.dart';
 import 'package:tic_tac_toc_game/views/home/widgets/online_players_list.dart';
 

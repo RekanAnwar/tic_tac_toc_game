@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/auth_controller.dart';
+import 'package:tic_tac_toc_game/controllers/auth_state_notifier.dart';
 import 'package:tic_tac_toc_game/views/auth/login_page.dart';
 import 'package:tic_tac_toc_game/views/main_navigation.dart';
 

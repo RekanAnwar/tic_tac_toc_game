@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/auth_controller.dart';
-import 'package:tic_tac_toc_game/controllers/game_controller.dart';
-import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
+import 'package:tic_tac_toc_game/controllers/auth_state_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/game_state_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/online_game_state_notifier.dart';
 import 'package:tic_tac_toc_game/extensions/context_extension.dart';
 import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/models/online_player_model.dart';

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
+import 'package:tic_tac_toc_game/controllers/game_request_stream_provider.dart';
+import 'package:tic_tac_toc_game/controllers/online_game_state_notifier.dart';
 import 'package:tic_tac_toc_game/models/online_player_model.dart';
 
 class GameRequests extends ConsumerWidget {

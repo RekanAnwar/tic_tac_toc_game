@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/auth_state_notifier.dart';
 import 'package:tic_tac_toc_game/controllers/online_game_state_notifier.dart';
-import 'package:tic_tac_toc_game/models/online_player_model.dart';
+import 'package:tic_tac_toc_game/models/user_model.dart';
 
 class OnlinePlayersList extends ConsumerWidget {
   const OnlinePlayersList({super.key});
@@ -30,11 +30,11 @@ class OnlinePlayersList extends ConsumerWidget {
                 leading: CircleAvatar(
                   backgroundColor: player.status.color,
                   child: Text(
-                    player.email[0].toUpperCase(),
+                    player.email?.substring(0, 1).toUpperCase() ?? '',
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
-                title: Text(player.email),
+                title: Text(player.email ?? ''),
                 subtitle: Text(player.status.text),
                 trailing: player.status == OnlineStatus.online
                     ? ElevatedButton(
@@ -43,7 +43,7 @@ class OnlinePlayersList extends ConsumerWidget {
                             try {
                               await ref
                                   .read(onlineGameControllerProvider.notifier)
-                                  .sendGameRequest(player.id);
+                                  .sendGameRequest(player.id ?? '');
 
                               if (!context.mounted) return;
 

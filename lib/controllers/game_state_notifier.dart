@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/models/game_model.dart';
-import 'package:tic_tac_toc_game/models/online_player_model.dart';
+import 'package:tic_tac_toc_game/models/user_model.dart';
 
 final gameControllerProvider =
     StateNotifierProvider<GameController, AsyncValue<GameModel>>(
@@ -120,15 +120,12 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
         // Update player 1 stats
         if (currentState.player1Id != null) {
           final doc1 = await _firestore
-              .collection('onlinePlayers')
+              .collection('users')
               .doc(currentState.player1Id)
               .get();
 
           final currentStats1 = doc1.data() ?? {};
-          await _firestore
-              .collection('onlinePlayers')
-              .doc(currentState.player1Id)
-              .set({
+          await _firestore.collection('users').doc(currentState.player1Id).set({
             ...currentStats1,
             'totalGames': (currentStats1['totalGames'] ?? 0) + 1,
             'wins': (currentStats1['wins'] ?? 0) + (player1Won ? 1 : 0),
@@ -138,15 +135,12 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
         // Update player 2 stats
         if (currentState.player2Id != null) {
           final doc2 = await _firestore
-              .collection('onlinePlayers')
+              .collection('users')
               .doc(currentState.player2Id)
               .get();
 
           final currentStats2 = doc2.data() ?? {};
-          await _firestore
-              .collection('onlinePlayers')
-              .doc(currentState.player2Id)
-              .set({
+          await _firestore.collection('users').doc(currentState.player2Id).set({
             ...currentStats2,
             'totalGames': (currentStats2['totalGames'] ?? 0) + 1,
             'wins': (currentStats2['wins'] ?? 0) + (player2Won ? 1 : 0),
@@ -272,13 +266,11 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
       // If game is already over, just update player statuses
       if (game.gameOver) {
         if (game.player1Id != null) {
-          batch.update(
-              _firestore.collection('onlinePlayers').doc(game.player1Id),
+          batch.update(_firestore.collection('users').doc(game.player1Id),
               {'status': OnlineStatus.online.toString()});
         }
         if (game.player2Id != null) {
-          batch.update(
-              _firestore.collection('onlinePlayers').doc(game.player2Id),
+          batch.update(_firestore.collection('users').doc(game.player2Id),
               {'status': OnlineStatus.online.toString()});
         }
       } else {
@@ -292,13 +284,11 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
 
         // Update player statuses
         if (game.player1Id != null) {
-          batch.update(
-              _firestore.collection('onlinePlayers').doc(game.player1Id),
+          batch.update(_firestore.collection('users').doc(game.player1Id),
               {'status': OnlineStatus.online.toString()});
         }
         if (game.player2Id != null) {
-          batch.update(
-              _firestore.collection('onlinePlayers').doc(game.player2Id),
+          batch.update(_firestore.collection('users').doc(game.player2Id),
               {'status': OnlineStatus.online.toString()});
         }
       }

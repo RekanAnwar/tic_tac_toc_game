@@ -6,7 +6,7 @@ import 'package:tic_tac_toc_game/controllers/game_state_notifier.dart';
 import 'package:tic_tac_toc_game/controllers/online_game_state_notifier.dart';
 import 'package:tic_tac_toc_game/extensions/context_extension.dart';
 import 'package:tic_tac_toc_game/models/game_model.dart';
-import 'package:tic_tac_toc_game/models/online_player_model.dart';
+import 'package:tic_tac_toc_game/models/user_model.dart';
 import 'package:tic_tac_toc_game/views/game/widgets/game_cell.dart';
 
 class GamePage extends ConsumerStatefulWidget {
@@ -94,15 +94,13 @@ class _GamePageState extends ConsumerState<GamePage> {
                 TextButton(
                   onPressed: () async {
                     await FirebaseFirestore.instance
-                        .collection('onlinePlayers')
+                        .collection('users')
                         .doc(currentUser.id)
                         .update({
                       'id': currentUser.id,
                       'email': currentUser.email,
                       'status': OnlineStatus.online.toString(),
-                      'lastSeen': DateTime.now().millisecondsSinceEpoch,
                     });
-
 
                     if (!context.mounted) return;
 

@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:tic_tac_toc_game/models/online_player_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tic_tac_toc_game/controllers/auth_state_notifier.dart';
+import 'package:tic_tac_toc_game/models/user_model.dart';
 
-class LifecycleEventHandler extends StatefulWidget {
+class LifecycleEventHandler extends ConsumerStatefulWidget {
   const LifecycleEventHandler({
     Key? key,
     required this.child,
@@ -11,10 +12,11 @@ class LifecycleEventHandler extends StatefulWidget {
   final Widget child;
 
   @override
-  State<LifecycleEventHandler> createState() => _LifecycleEventHandlerState();
+  ConsumerState<LifecycleEventHandler> createState() =>
+      _LifecycleEventHandlerState();
 }
 
-class _LifecycleEventHandlerState extends State<LifecycleEventHandler>
+class _LifecycleEventHandlerState extends ConsumerState<LifecycleEventHandler>
     with WidgetsBindingObserver {
   @override
   void initState() {
@@ -41,38 +43,34 @@ class _LifecycleEventHandlerState extends State<LifecycleEventHandler>
   }
 
   Future<void> _setOfflineStatus() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    final user = ref.read(authControllerProvider).value!;
 
     try {
-      await FirebaseFirestore.instance
-          .collection('onlinePlayers')
-          .doc(user.uid)
-          .update({
-        'id': user.uid,
-        'email': user.email,
-        'status': OnlineStatus.offline.toString(),
-        'lastSeen': DateTime.now().millisecondsSinceEpoch,
-      });
+      await FirebaseFirestore.instance.collection('users').doc(user.id).set(
+        {
+          'id': user.id,
+          'email': user.email,
+          'status': OnlineStatus.offline.toString(),
+        },
+        SetOptions(merge: true),
+      );
     } catch (e) {
       debugPrint('Error setting offline status: $e');
     }
   }
 
   Future<void> _setOnlineStatus() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    final user = ref.read(authControllerProvider).value!;
 
     try {
-      await FirebaseFirestore.instance
-          .collection('onlinePlayers')
-          .doc(user.uid)
-          .update({
-        'id': user.uid,
-        'email': user.email,
-        'status': OnlineStatus.online.toString(),
-        'lastSeen': DateTime.now().millisecondsSinceEpoch,
-      });
+      await FirebaseFirestore.instance.collection('users').doc(user.id).set(
+        {
+          'id': user.id,
+          'email': user.email,
+          'status': OnlineStatus.online.toString(),
+        },
+        SetOptions(merge: true),
+      );
     } catch (e) {
       debugPrint('Error setting online status: $e');
     }

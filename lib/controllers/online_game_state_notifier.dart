@@ -6,10 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/models/game_request.dart';
-import 'package:tic_tac_toc_game/models/online_player_model.dart';
+import 'package:tic_tac_toc_game/models/user_model.dart';
 
-final onlineGameControllerProvider = StateNotifierProvider<OnlineGameController,
-    AsyncValue<List<OnlinePlayerModel>>>(
+final onlineGameControllerProvider =
+    StateNotifierProvider<OnlineGameController, AsyncValue<List<UserModel>>>(
   (ref) {
     return OnlineGameController(
       FirebaseFirestore.instance,
@@ -18,9 +18,7 @@ final onlineGameControllerProvider = StateNotifierProvider<OnlineGameController,
   },
 );
 
-
-class OnlineGameController
-    extends StateNotifier<AsyncValue<List<OnlinePlayerModel>>> {
+class OnlineGameController extends StateNotifier<AsyncValue<List<UserModel>>> {
   OnlineGameController(this._firestore, this._auth)
       : super(const AsyncValue.loading()) {
     _initializeOnlineStatus();
@@ -56,14 +54,10 @@ class OnlineGameController
     if (_auth.currentUser == null) return;
 
     try {
-      await _firestore
-          .collection('onlinePlayers')
-          .doc(_auth.currentUser!.uid)
-          .update({
+      await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
         'id': _auth.currentUser!.uid,
         'email': _auth.currentUser!.email,
         'status': OnlineStatus.online.toString(),
-        'lastSeen': DateTime.now().millisecondsSinceEpoch,
       });
     } catch (e) {
       log('Error setting online status: $e');
@@ -75,14 +69,10 @@ class OnlineGameController
     if (_auth.currentUser == null) return;
 
     try {
-      await _firestore
-          .collection('onlinePlayers')
-          .doc(_auth.currentUser!.uid)
-          .update({
+      await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
         'id': _auth.currentUser!.uid,
         'email': _auth.currentUser!.email,
         'status': OnlineStatus.offline.toString(),
-        'lastSeen': DateTime.now().millisecondsSinceEpoch,
       });
     } catch (e) {
       log('Error setting offline status: $e');
@@ -95,14 +85,13 @@ class OnlineGameController
 
     _onlinePlayersSubscription?.cancel();
     _onlinePlayersSubscription = _firestore
-        .collection('onlinePlayers')
+        .collection('users')
         .where('id', isNotEqualTo: _auth.currentUser!.uid)
         .snapshots()
         .listen(
       (snapshot) {
-        final players = snapshot.docs
-            .map((doc) => OnlinePlayerModel.fromMap(doc.data()))
-            .toList();
+        final players =
+            snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
         state = AsyncValue.data(players);
       },
       onError: (error) {
@@ -248,10 +237,9 @@ class OnlineGameController
           })
           ..update(
               // Update both players' status to inGame
-              _firestore.collection('onlinePlayers').doc(request.fromPlayerId),
+              _firestore.collection('users').doc(request.fromPlayerId),
               {'status': OnlineStatus.inGame.toString()})
-          ..update(
-              _firestore.collection('onlinePlayers').doc(request.toPlayerId), {
+          ..update(_firestore.collection('users').doc(request.toPlayerId), {
             'status': OnlineStatus.inGame.toString(),
           });
 

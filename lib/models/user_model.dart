@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class UserModel extends Equatable {
   const UserModel({
@@ -8,6 +9,7 @@ class UserModel extends Equatable {
     this.displayName,
     this.wins = 0,
     this.totalGames = 0,
+    this.status = OnlineStatus.offline,
   });
 
   factory UserModel.fromFirebase(UserCredential credential) => UserModel(
@@ -22,6 +24,10 @@ class UserModel extends Equatable {
         displayName: map['displayName'],
         wins: map['wins'] ?? 0,
         totalGames: map['totalGames'] ?? 0,
+        status: OnlineStatus.values.firstWhere(
+          (e) => e.toString() == map['status'],
+          orElse: () => OnlineStatus.offline,
+        ),
       );
 
   final String? id;
@@ -29,6 +35,7 @@ class UserModel extends Equatable {
   final String? displayName;
   final int wins;
   final int totalGames;
+  final OnlineStatus status;
 
   Map<String, dynamic> toMap() => {
         'id': id,
@@ -36,6 +43,7 @@ class UserModel extends Equatable {
         'displayName': displayName,
         'wins': wins,
         'totalGames': totalGames,
+        'status': status.toString(),
       };
 
   UserModel copyWith({
@@ -44,6 +52,7 @@ class UserModel extends Equatable {
     String? displayName,
     int? wins,
     int? totalGames,
+    OnlineStatus? status,
   }) =>
       UserModel(
         id: id ?? this.id,
@@ -51,8 +60,27 @@ class UserModel extends Equatable {
         displayName: displayName ?? this.displayName,
         wins: wins ?? this.wins,
         totalGames: totalGames ?? this.totalGames,
+        status: status ?? this.status,
       );
 
   @override
-  List<Object?> get props => [id, email, displayName, wins, totalGames];
+  List<Object?> get props => [id, email, displayName, wins, totalGames, status];
+}
+
+enum OnlineStatus {
+  online,
+  inGame,
+  offline;
+
+  Color get color => switch (this) {
+        OnlineStatus.online => Colors.green,
+        OnlineStatus.inGame => Colors.orange,
+        OnlineStatus.offline => Colors.grey,
+      };
+
+  String get text => switch (this) {
+        OnlineStatus.online => 'Online',
+        OnlineStatus.inGame => 'In Game',
+        OnlineStatus.offline => 'Offline',
+      };
 }

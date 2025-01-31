@@ -14,7 +14,7 @@ class RankPage extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
-            .collection('onlinePlayers')
+            .collection('users')
             .orderBy('wins', descending: true)
             .snapshots(),
         builder: (context, snapshot) {

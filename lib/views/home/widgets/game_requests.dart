@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/game_request_stream_provider.dart';
 import 'package:tic_tac_toc_game/controllers/online_game_state_notifier.dart';
-import 'package:tic_tac_toc_game/models/online_player_model.dart';
+import 'package:tic_tac_toc_game/models/user_model.dart';
 
 class GameRequests extends ConsumerWidget {
   const GameRequests({super.key});
@@ -25,7 +25,7 @@ class GameRequests extends ConsumerWidget {
 
               final sender = onlinePlayers.value?.firstWhere(
                 (player) => player.id == request.fromPlayerId,
-                orElse: () => OnlinePlayerModel(
+                orElse: () => UserModel(
                   id: request.fromPlayerId,
                   email: 'Unknown Player',
                 ),
@@ -37,7 +37,7 @@ class GameRequests extends ConsumerWidget {
                   leading: CircleAvatar(
                     backgroundColor: Colors.blue,
                     child: Text(
-                      sender?.email[0].toUpperCase() ?? '?',
+                      sender?.email?.substring(0, 1).toUpperCase() ?? '?',
                       style: const TextStyle(color: Colors.white),
                     ),
                   ),

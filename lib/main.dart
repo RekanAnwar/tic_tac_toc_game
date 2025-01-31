@@ -1,4 +1,5 @@
 import 'dart:developer';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:tic_tac_toc_game/views/auth/auth_wrapper.dart';
 import 'package:tic_tac_toc_game/views/auth/login_page.dart';
 import 'package:tic_tac_toc_game/views/auth/signup_page.dart';
 import 'package:tic_tac_toc_game/views/game/game_page.dart';
+import 'package:tic_tac_toc_game/views/game/game_page_ai.dart';
 import 'package:tic_tac_toc_game/views/home/home_page.dart';
 
 void main() async {
@@ -57,6 +59,8 @@ class MyApp extends StatelessWidget {
               return MaterialPageRoute(builder: (_) => const SignupPage());
             case '/home':
               return MaterialPageRoute(builder: (_) => const HomePage());
+            case '/playwithai':
+              return MaterialPageRoute(builder: (_) => const GamePageAI());
             case '/game':
               final game = settings.arguments as Map<String, dynamic>;
 

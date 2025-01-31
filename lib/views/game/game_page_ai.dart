@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/game_ai.dart';
 
-class TicTacToePage extends ConsumerStatefulWidget {
+class GamePageAI extends ConsumerStatefulWidget {
+  const GamePageAI({super.key});
+
   @override
   _TicTacToePageState createState() => _TicTacToePageState();
 }
 
-class _TicTacToePageState extends ConsumerState<TicTacToePage> {
-  final TicTacToe _game = TicTacToe();
+class _TicTacToePageState extends ConsumerState<GamePageAI> {
+  final GameAI _game = GameAI();
   int diffcult = 3;
   String _currentPlayer = 'X';
   String _winner = '';
@@ -21,12 +23,12 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
         _winner = _game.checkWinner();
         if (_winner == 'X') {
           _playerWins++;
-          _showWinDialog('بەخێربێیت! تۆ بردی!');
+          _showWinDialog('Congratulations! You won!');
         } else if (_winner == 'O') {
           _aiWins++;
-          _showWinDialog('AI برد! کارە بختت دەگایەوە!');
+          _showWinDialog('AI won! Better luck next time!');
         } else if (_winner == 'Tie') {
-          _showWinDialog('یەکسانە!');
+          _showWinDialog('It\'s a tie!');
         }
 
         if (_winner == '' && _currentPlayer == 'X') {
@@ -36,9 +38,9 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
           _winner = _game.checkWinner();
           if (_winner == 'O') {
             _aiWins++;
-            _showWinDialog('تۆ نەتتوانی یارییەکە ببەیتەوە');
+            _showWinDialog('You couldn\'t win this game');
           } else if (_winner == 'Tie') {
-            _showWinDialog('یەکسانە!');
+            _showWinDialog('It\'s a tie!');
           }
           _currentPlayer = 'X';
         }
@@ -52,14 +54,14 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text(
-            'یاری کۆتایی هات',
+            'Game Over',
             textAlign: TextAlign.right,
           ),
           content: Text(message, textAlign: TextAlign.center),
           actions: <Widget>[
             ElevatedButton(
               child: const Text(
-                'دووبارە یاری بکە',
+                'Play Again',
                 textAlign: TextAlign.right,
               ),
               onPressed: () {
@@ -76,7 +78,7 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
   void _resetGame() {
     setState(() {
       _game.board = List.generate(
-          TicTacToe.boardSize, (_) => List.filled(TicTacToe.boardSize, ''));
+          GameAI.boardSize, (_) => List.filled(GameAI.boardSize, ''));
       _currentPlayer = 'X';
       _winner = '';
     });
@@ -87,7 +89,7 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
     return Scaffold(
       appBar: AppBar(
           title: const Text(
-            'تێک تاک تۆک',
+            'Tic Tac Toe',
             style: TextStyle(color: Colors.white),
           ),
           centerTitle: true,
@@ -117,19 +119,19 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
                         const DropdownMenuItem(
                             value: 10,
                             child: Text(
-                              'گران',
+                              'Hard',
                               style: TextStyle(fontSize: 20),
                             )),
                         const DropdownMenuItem(
                             value: 7,
                             child: Text(
-                              'ناوەند',
+                              'Medium',
                               style: TextStyle(fontSize: 20),
                             )),
                         const DropdownMenuItem(
                             value: 3,
                             child: Text(
-                              'ئاسان',
+                              'Easy',
                               style: TextStyle(fontSize: 20),
                             )),
                       ],
@@ -141,7 +143,7 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
                         });
                       }),
                   const Text(
-                    'هەڵبژاردنی ئاست',
+                    'Select Level',
                     style: TextStyle(fontSize: 24),
                   ),
                 ],
@@ -151,13 +153,13 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
           _buildBoard(),
           const SizedBox(height: 20),
           Text(
-            'ئەنجامەکانی یاریزانی: $_playerWins',
+            'Player Score: $_playerWins',
             textAlign: TextAlign.right,
             style: const TextStyle(
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green),
           ),
           Text(
-            'ئەنجامەکانی AI: $_aiWins',
+            'AI Score: $_aiWins',
             style: const TextStyle(
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.red),
           ),
@@ -171,12 +173,12 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
       aspectRatio: 1,
       child: GridView.builder(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: TicTacToe.boardSize,
+          crossAxisCount: GameAI.boardSize,
         ),
-        itemCount: TicTacToe.boardSize * TicTacToe.boardSize,
+        itemCount: GameAI.boardSize * GameAI.boardSize,
         itemBuilder: (context, index) {
-          final int row = index ~/ TicTacToe.boardSize;
-          final int col = index % TicTacToe.boardSize;
+          final int row = index ~/ GameAI.boardSize;
+          final int col = index % GameAI.boardSize;
           return GestureDetector(
             onTap: () => _makeMove(row, col),
             child: DecoratedBox(

@@ -4,10 +4,14 @@ import 'package:riverpod/riverpod.dart';
 
 final difficultyProvider = StateProvider<int>((ref) => 3);
 
-class TicTacToe {
-  TicTacToe()
-      : board = List.generate(boardSize, (_) => List.filled(boardSize, ''),
-            growable: false);
+class GameAI {
+  GameAI()
+      : board = List.generate(
+          boardSize,
+          (_) => List.filled(boardSize, ''),
+          growable: false,
+        );
+
   static const int boardSize = 3;
   List<List<String>> board;
 

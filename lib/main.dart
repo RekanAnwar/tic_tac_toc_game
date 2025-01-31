@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/firebase_options.dart';
+import 'package:tic_tac_toc_game/models/game_model.dart';
+import 'package:tic_tac_toc_game/utils/lifecycle_handler.dart';
 import 'package:tic_tac_toc_game/views/auth/auth_wrapper.dart';
 import 'package:tic_tac_toc_game/views/auth/login_page.dart';
 import 'package:tic_tac_toc_game/views/auth/signup_page.dart';
@@ -38,35 +40,49 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+<<<<<<< HEAD
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Tic Tac Toe',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+=======
+    return LifecycleEventHandler(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Tic Tac Toe',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        home: const AuthWrapper(child: LoginPage()),
+        onGenerateRoute: (settings) {
+          switch (settings.name) {
+            case '/login':
+              return MaterialPageRoute(builder: (_) => const LoginPage());
+            case '/signup':
+              return MaterialPageRoute(builder: (_) => const SignupPage());
+            case '/home':
+              return MaterialPageRoute(builder: (_) => const HomePage());
+            case '/game':
+              final game = settings.arguments as Map<String, dynamic>;
+
+              final gameModel = GameModel.fromMap(game);
+
+              return MaterialPageRoute(
+                builder: (_) => GamePage(game: gameModel),
+              );
+            default:
+              return MaterialPageRoute(
+                builder: (_) => const AuthWrapper(
+                  child: LoginPage(),
+                ),
+              );
+          }
+        },
+>>>>>>> 4c13e4081b96595608ffd7e6f4053aa166c9cb25
       ),
-      home: const AuthWrapper(),
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          case '/login':
-            return MaterialPageRoute(builder: (_) => const LoginPage());
-          case '/signup':
-            return MaterialPageRoute(builder: (_) => const SignupPage());
-          case '/home':
-            return MaterialPageRoute(builder: (_) => const HomePage());
-          case '/game':
-            final args = settings.arguments as Map<String, String>?;
-            return MaterialPageRoute(
-              builder: (_) => GamePage(
-                gameId: args?['gameId'],
-                player1Id: args?['player1Id'],
-                player2Id: args?['player2Id'],
-              ),
-            );
-          default:
-            return MaterialPageRoute(builder: (_) => const AuthWrapper());
-        }
-      },
     );
   }
 }

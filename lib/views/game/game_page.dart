@@ -1,23 +1,21 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/game_controller.dart';
-import 'package:tic_tac_toc_game/controllers/online_game_controller.dart';
+import 'package:tic_tac_toc_game/controllers/auth_async_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/game_state_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/online_game_async_notifier.dart';
 import 'package:tic_tac_toc_game/extensions/context_extension.dart';
 import 'package:tic_tac_toc_game/models/game_model.dart';
+import 'package:tic_tac_toc_game/models/user_model.dart';
 import 'package:tic_tac_toc_game/views/game/widgets/game_cell.dart';
 
 class GamePage extends ConsumerStatefulWidget {
   const GamePage({
     super.key,
-    this.gameId,
-    this.player1Id,
-    this.player2Id,
+    required this.game,
   });
 
-  final String? gameId;
-  final String? player1Id;
-  final String? player2Id;
+  final GameModel game;
 
   @override
   ConsumerState<GamePage> createState() => _GamePageState();
@@ -27,157 +25,112 @@ class _GamePageState extends ConsumerState<GamePage> {
   @override
   void initState() {
     super.initState();
-    _initializeGame();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeGame();
+    });
     // Clean up any pending requests when entering a game
-    if (widget.gameId != null) {
+    if (widget.game.gameId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(onlineGameControllerProvider.notifier).cleanupGameRequests();
+        ref
+            .read(onlineGameAsyncNotifierProvider.notifier)
+            .cleanupGameRequests();
       });
     }
   }
 
   Future<void> _initializeGame() async {
-    if (widget.gameId != null &&
-        widget.player1Id != null &&
-        widget.player2Id != null) {
+    if (widget.game.gameId != null &&
+        widget.game.player1Id != null &&
+        widget.game.player2Id != null) {
       await ref.read(gameControllerProvider.notifier).startOnlineGame(
-            widget.gameId!,
-            widget.player1Id!,
-            widget.player2Id!,
+            widget.game.gameId!,
+            widget.game.player1Id!,
+            widget.game.player2Id!,
           );
-    } else {
-      ref.read(gameControllerProvider.notifier).startLocalGame();
-    }
-  }
-
-  Future<void> _exitGame(BuildContext context) async {
-    final game = ref.read(gameControllerProvider).value;
-    if (game?.gameId == null) {
-      Navigator.of(context).pushReplacementNamed('/home');
-      return;
-    }
-
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
-    if (currentUserId == null) return;
-
-    try {
-      await ref
-          .read(gameControllerProvider.notifier)
-          .leaveGame(game!.gameId!, currentUserId);
-      if (context.mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error leaving game. Please try again.'),
-          ),
-        );
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final game = widget.game;
+
     final gameState = ref.watch(gameControllerProvider);
-    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    final currentUser = ref.watch(authAsyncNotifierProvider).value!;
 
-    // Listen for rematch decline
-    ref.listen(rematchDeclinedProvider, (previous, next) {
-      if (next.value == true) {
-        // Show a message when rematch is declined
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Rematch was declined'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    });
+    ref.listen(
+      gameControllerProvider,
+      (previous, next) {
+        if (next.value != null && next.value!.gameOver) {
+          final game = next.value!;
+          final isWinner = game.winner != null &&
+              ((game.winner == Player.X && game.player1Id == currentUser.id) ||
+                  (game.winner == Player.O &&
+                      game.player2Id == currentUser.id));
 
-    // Remove auto-navigation on game over
-    // Instead, show appropriate messages and exit button
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => AlertDialog(
+              title: Text(
+                game.winner != null
+                    ? isWinner
+                        ? 'You Won! 🎉'
+                        : 'You Lost! 😔'
+                    : 'Draw Game! 🤝',
+                style: TextStyle(
+                  color: game.winner != null
+                      ? isWinner
+                          ? Colors.green
+                          : Colors.red
+                      : null,
+                ),
+              ),
+              content: Text(
+                game.winner != null
+                    ? isWinner
+                        ? 'Congratulations! You have won the game!'
+                        : 'Better luck next time! Keep playing to improve.'
+                    : 'It\'s a draw! Great game by both players!',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(currentUser.id)
+                        .update({
+                      'id': currentUser.id,
+                      'email': currentUser.email,
+                      'status': OnlineStatus.online.toString(),
+                    });
 
-    // ignore: deprecated_member_use
-    return WillPopScope(
-      onWillPop: () async {
-        final game = gameState.value;
-        if (game?.gameId == null) {
-          return true; // Allow back navigation for local games
+                    ref.read(authAsyncNotifierProvider.notifier).getUser();
+
+                    if (!context.mounted) return;
+
+                    Navigator.of(context)
+                      ..pop()
+                      ..pop();
+                  },
+                  child: const Text('Return to Home'),
+                ),
+              ],
+            ),
+          );
         }
-        final shouldPop = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Leave Game?'),
-            content: const Text(
-                'Are you sure you want to leave the game? The other player will be notified.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context, true);
-                  await _exitGame(context);
-                },
-                child: const Text('Leave'),
-              ),
-            ],
-          ),
-        );
-        return shouldPop ?? false;
       },
+    );
+
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         appBar: AppBar(
+          leadingWidth: 0,
+          centerTitle: true,
+          leading: const SizedBox.shrink(),
           title: const Text('Tic Tac Toe'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () async {
-              final shouldExit = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Leave Game?'),
-                  content: const Text(
-                      'Are you sure you want to leave the game? The other player will be notified.'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.pop(context, true);
-                        await _exitGame(context);
-                      },
-                      child: const Text('Leave'),
-                    ),
-                  ],
-                ),
-              );
-              if ((shouldExit ?? false) && context.mounted) {
-                await _exitGame(context);
-              }
-            },
-          ),
           actions: [
-            if (gameState.value?.gameOver == true)
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () async {
-                  if (widget.gameId != null) {
-                    // Online game - request rematch
-                    await ref
-                        .read(gameControllerProvider.notifier)
-                        .requestRematch(widget.gameId!);
-                  } else {
-                    // Local game - reset immediately
-                    ref.read(gameControllerProvider.notifier).resetGame();
-                  }
-                },
-              ),
-            if (widget.gameId != null) // Add exit button for online games
+            if (game.gameId != null) // Add exit button for online games
               IconButton(
                 icon: const Icon(Icons.exit_to_app),
                 onPressed: () async {
@@ -196,7 +149,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                           onPressed: () async {
                             await ref
                                 .read(gameControllerProvider.notifier)
-                                .leaveGame(widget.gameId!, currentUserId!);
+                                .leaveGame(game.gameId!, currentUser.id!);
                             if (context.mounted) {
                               Navigator.pop(context, true);
                               Navigator.of(context).pushReplacementNamed(
@@ -214,7 +167,7 @@ class _GamePageState extends ConsumerState<GamePage> {
           ],
         ),
         body: gameState.when(
-          data: (game) => _buildGameBody(context, game, currentUserId),
+          data: (game) => _buildGameBody(context, game, currentUser.id),
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => Center(child: Text('Error: $error')),
         ),
@@ -223,7 +176,10 @@ class _GamePageState extends ConsumerState<GamePage> {
   }
 
   Widget _buildGameBody(
-      BuildContext context, GameModel game, String? currentUserId) {
+    BuildContext context,
+    GameModel game,
+    String? currentUserId,
+  ) {
     final isOnlineGame = game.gameId != null;
     final isCurrentPlayerTurn = !isOnlineGame ||
         (game.currentPlayer == Player.X && game.player1Id == currentUserId) ||
@@ -252,48 +208,6 @@ class _GamePageState extends ConsumerState<GamePage> {
       });
     }
 
-    // Handle rematch request
-    if (game.rematchRequestedBy != null &&
-        game.rematchRequestedBy != currentUserId &&
-        game.gameOver) {
-      // Show rematch request dialog
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: const Text('Rematch Request'),
-            content: const Text('Your opponent wants to play again. Accept?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ref
-                      .read(gameControllerProvider.notifier)
-                      .respondToRematch(game.gameId!, false);
-                  Navigator.of(context).pushReplacementNamed('/home');
-                },
-                child: const Text('Decline'),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await ref
-                      .read(gameControllerProvider.notifier)
-                      .respondToRematch(game.gameId!, true);
-                  // Re-initialize the game after accepting rematch
-                  if (mounted) {
-                    await _initializeGame();
-                  }
-                },
-                child: const Text('Accept'),
-              ),
-            ],
-          ),
-        );
-      });
-    }
-
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -312,11 +226,6 @@ class _GamePageState extends ConsumerState<GamePage> {
             const Text(
               "Opponent's turn",
               style: TextStyle(fontSize: 24, color: Colors.orange),
-            ),
-          if (game.rematchRequestedBy == currentUserId)
-            const Text(
-              'Waiting for opponent to accept rematch...',
-              style: TextStyle(fontSize: 18, color: Colors.blue),
             ),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),

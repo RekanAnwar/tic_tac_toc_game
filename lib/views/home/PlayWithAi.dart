@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/game_ai.dart';
@@ -33,7 +31,7 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
 
         if (_winner == '' && _currentPlayer == 'X') {
           _currentPlayer = 'O';
-          List<int> move = _game.bestMove('O', diffcult);
+          final List<int> move = _game.bestMove('O', diffcult);
           _game.makeMove(move[0], move[1], 'O');
           _winner = _game.checkWinner();
           if (_winner == 'O') {
@@ -116,9 +114,9 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
                       menuMaxHeight: 400,
                       icon: const Icon(Icons.arrow_drop_down_circle),
                       items: [
-                        DropdownMenuItem(
+                        const DropdownMenuItem(
                             value: 10,
-                            child: const Text(
+                            child: Text(
                               'گران',
                               style: TextStyle(fontSize: 20),
                             )),
@@ -177,13 +175,13 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
         ),
         itemCount: TicTacToe.boardSize * TicTacToe.boardSize,
         itemBuilder: (context, index) {
-          int row = index ~/ TicTacToe.boardSize;
-          int col = index % TicTacToe.boardSize;
+          final int row = index ~/ TicTacToe.boardSize;
+          final int col = index % TicTacToe.boardSize;
           return GestureDetector(
             onTap: () => _makeMove(row, col),
-            child: Container(
+            child: DecoratedBox(
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.blueAccent, width: 1),
+                border: Border.all(color: Colors.blueAccent),
                 color: _game.board[row][col] == 'X'
                     ? Colors.lightBlue[100]
                     : (_game.board[row][col] == 'O'
@@ -203,8 +201,4 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
       ),
     );
   }
-}
-
-class df {
-  static int difficailt = 3;
 }

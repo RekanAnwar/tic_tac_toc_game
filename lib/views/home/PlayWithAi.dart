@@ -86,7 +86,6 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
           title: const Text(
@@ -139,9 +138,7 @@ class _TicTacToePageState extends ConsumerState<TicTacToePage> {
                       onChanged: (value) {
                         setState(() {
                           diffcult = value!;
-                          setState(() {
-                            
-                          });
+                          setState(() {});
                           // _resetGame();
                         });
                       }),

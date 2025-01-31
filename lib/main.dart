@@ -40,14 +40,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Tic Tac Toe',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-=======
     return LifecycleEventHandler(
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -81,7 +73,6 @@ class MyApp extends StatelessWidget {
               );
           }
         },
->>>>>>> 4c13e4081b96595608ffd7e6f4053aa166c9cb25
       ),
     );
   }

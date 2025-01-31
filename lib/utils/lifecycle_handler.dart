@@ -43,6 +43,12 @@ class _LifecycleEventHandlerState extends ConsumerState<LifecycleEventHandler>
   }
 
   Future<void> _setOfflineStatus() async {
+    final isLoggedIn = ref.read(authControllerProvider.select(
+      (auth) => auth.value != null,
+    ));
+
+    if (!isLoggedIn) return;
+
     final user = ref.read(authControllerProvider).value!;
 
     try {
@@ -60,6 +66,12 @@ class _LifecycleEventHandlerState extends ConsumerState<LifecycleEventHandler>
   }
 
   Future<void> _setOnlineStatus() async {
+    final isLoggedIn = ref.read(authControllerProvider.select(
+      (auth) => auth.value != null,
+    ));
+
+    if (!isLoggedIn) return;
+
     final user = ref.read(authControllerProvider).value!;
 
     try {

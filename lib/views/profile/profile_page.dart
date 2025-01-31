@@ -69,8 +69,6 @@ class ProfilePage extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildStatItem('Wins', user?.wins.toString() ?? '0'),
-                      // _buildStatItem('Losses', user?.losses.toString() ?? '0'),
-                      // _buildStatItem('Draws', user?.draws.toString() ?? '0'),
                     ],
                   ),
                 ],

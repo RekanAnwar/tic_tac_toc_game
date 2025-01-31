@@ -49,7 +49,7 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: const AuthWrapper(),
+        home: const AuthWrapper(child: LoginPage()),
         onGenerateRoute: (settings) {
           switch (settings.name) {
             case '/login':
@@ -67,7 +67,11 @@ class MyApp extends StatelessWidget {
                 builder: (_) => GamePage(game: gameModel),
               );
             default:
-              return MaterialPageRoute(builder: (_) => const AuthWrapper());
+              return MaterialPageRoute(
+                builder: (_) => const AuthWrapper(
+                  child: LoginPage(),
+                ),
+              );
           }
         },
       ),

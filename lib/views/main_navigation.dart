@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tic_tac_toc_game/controllers/current_index_state_provider.dart';
 import 'package:tic_tac_toc_game/views/home/home_page.dart';
 import 'package:tic_tac_toc_game/views/profile/profile_page.dart';
 import 'package:tic_tac_toc_game/views/rank/rank_page.dart';
 
-class MainNavigation extends StatefulWidget {
+class MainNavigation extends ConsumerStatefulWidget {
   const MainNavigation({super.key});
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  ConsumerState<MainNavigation> createState() => _MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
-
+class _MainNavigationState extends ConsumerState<MainNavigation> {
   final List<Widget> _pages = const [
     HomePage(),
     RankPage(),
@@ -21,15 +21,14 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final currentIndex = ref.watch(currentIndexProvider);
+    final currentIndexNotifier = ref.read(currentIndexProvider.notifier);
+
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: _pages[currentIndex],
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
+        selectedIndex: currentIndex,
+        onDestinationSelected: (index) => currentIndexNotifier.state = index,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.games),

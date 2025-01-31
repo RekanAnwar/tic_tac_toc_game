@@ -32,7 +32,6 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               _passwordController.text,
             );
 
-
         _emailController.clear();
         _passwordController.clear();
       } on FirebaseAuthException catch (e) {
@@ -69,11 +68,36 @@ class _SignupPageState extends ConsumerState<SignupPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const Text(
+                  'Sign up',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Username',
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
+                  decoration: InputDecoration(
+                    hintText: 'Email',
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -87,12 +111,17 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 15),
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock),
+                  decoration: InputDecoration(
+                    hintText: 'Password',
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                   obscureText: true,
                   validator: (value) {
@@ -105,10 +134,36 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _signup,
-                  child: const Text('Sign Up'),
+                const SizedBox(height: 15),
+                TextField(
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: 'Confirm Password',
+                    filled: true,
+                    fillColor: Colors.grey[200],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _signup,
+                    child: const Text(
+                      'Sign Up',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pushReplacementNamed(

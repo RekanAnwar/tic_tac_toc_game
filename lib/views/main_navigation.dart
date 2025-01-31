@@ -31,15 +31,15 @@ class _MainNavigationState extends ConsumerState<MainNavigation> {
         onDestinationSelected: (index) => currentIndexNotifier.state = index,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.games),
-            label: 'Games',
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
           ),
           NavigationDestination(
             icon: Icon(Icons.leaderboard),
-            label: 'Rank',
+            label: 'Ranking',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person),
+            icon: Icon(Icons.account_circle_outlined),
             label: 'Profile',
           ),
         ],

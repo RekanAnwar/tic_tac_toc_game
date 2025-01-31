@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/auth_state_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/auth_async_notifier.dart';
 import 'package:tic_tac_toc_game/models/user_model.dart';
 
 class LifecycleEventHandler extends ConsumerStatefulWidget {
@@ -43,13 +43,13 @@ class _LifecycleEventHandlerState extends ConsumerState<LifecycleEventHandler>
   }
 
   Future<void> _setOfflineStatus() async {
-    final isLoggedIn = ref.read(authControllerProvider.select(
+    final isLoggedIn = ref.read(authAsyncNotifierProvider.select(
       (auth) => auth.value != null,
     ));
 
     if (!isLoggedIn) return;
 
-    final user = ref.read(authControllerProvider).value!;
+    final user = ref.read(authAsyncNotifierProvider).value!;
 
     try {
       await FirebaseFirestore.instance.collection('users').doc(user.id).set(
@@ -66,13 +66,13 @@ class _LifecycleEventHandlerState extends ConsumerState<LifecycleEventHandler>
   }
 
   Future<void> _setOnlineStatus() async {
-    final isLoggedIn = ref.read(authControllerProvider.select(
+    final isLoggedIn = ref.read(authAsyncNotifierProvider.select(
       (auth) => auth.value != null,
     ));
 
     if (!isLoggedIn) return;
 
-    final user = ref.read(authControllerProvider).value!;
+    final user = ref.read(authAsyncNotifierProvider).value!;
 
     try {
       await FirebaseFirestore.instance.collection('users').doc(user.id).set(

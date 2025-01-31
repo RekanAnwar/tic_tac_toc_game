@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tic_tac_toc_game/controllers/game_request_stream_provider.dart';
-import 'package:tic_tac_toc_game/controllers/online_game_state_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/online_game_async_notifier.dart';
 import 'package:tic_tac_toc_game/models/user_model.dart';
 
 class GameRequests extends ConsumerWidget {
@@ -10,7 +10,7 @@ class GameRequests extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final gameRequests = ref.watch(gameRequestsProvider);
-    final onlinePlayers = ref.watch(onlineGameControllerProvider);
+    final onlinePlayers = ref.watch(onlineGameAsyncNotifierProvider);
 
     return gameRequests.when(
       data: (requests) {
@@ -54,7 +54,7 @@ class GameRequests extends ConsumerWidget {
                         onPressed: () async {
                           try {
                             ref
-                                .read(onlineGameControllerProvider.notifier)
+                                .read(onlineGameAsyncNotifierProvider.notifier)
                                 .respondToGameRequest(request.id, true);
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -72,7 +72,7 @@ class GameRequests extends ConsumerWidget {
                         onPressed: () {
                           try {
                             ref
-                                .read(onlineGameControllerProvider.notifier)
+                                .read(onlineGameAsyncNotifierProvider.notifier)
                                 .respondToGameRequest(request.id, false);
                           } catch (e) {
                             ScaffoldMessenger.of(context).showSnackBar(

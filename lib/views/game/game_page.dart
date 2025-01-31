@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/auth_state_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/auth_async_notifier.dart';
 import 'package:tic_tac_toc_game/controllers/game_state_notifier.dart';
-import 'package:tic_tac_toc_game/controllers/online_game_state_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/online_game_async_notifier.dart';
 import 'package:tic_tac_toc_game/extensions/context_extension.dart';
 import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/models/user_model.dart';
@@ -31,7 +31,9 @@ class _GamePageState extends ConsumerState<GamePage> {
     // Clean up any pending requests when entering a game
     if (widget.game.gameId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(onlineGameControllerProvider.notifier).cleanupGameRequests();
+        ref
+            .read(onlineGameAsyncNotifierProvider.notifier)
+            .cleanupGameRequests();
       });
     }
   }
@@ -53,7 +55,7 @@ class _GamePageState extends ConsumerState<GamePage> {
     final game = widget.game;
 
     final gameState = ref.watch(gameControllerProvider);
-    final currentUser = ref.watch(authControllerProvider).value!;
+    final currentUser = ref.watch(authAsyncNotifierProvider).value!;
 
     ref.listen(
       gameControllerProvider,
@@ -101,6 +103,8 @@ class _GamePageState extends ConsumerState<GamePage> {
                       'email': currentUser.email,
                       'status': OnlineStatus.online.toString(),
                     });
+
+                    ref.read(authAsyncNotifierProvider.notifier).getUser();
 
                     if (!context.mounted) return;
 

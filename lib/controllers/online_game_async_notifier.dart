@@ -2,37 +2,44 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tic_tac_toc_game/controllers/auth_async_notifier.dart';
 import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/models/game_request.dart';
 import 'package:tic_tac_toc_game/models/user_model.dart';
 
-final onlineGameControllerProvider =
-    StateNotifierProvider<OnlineGameController, AsyncValue<List<UserModel>>>(
-  (ref) {
-    return OnlineGameController(
-      FirebaseFirestore.instance,
-      FirebaseAuth.instance,
-    );
-  },
+final onlineGameAsyncNotifierProvider =
+    AsyncNotifierProvider<OnlineGameAsyncNotifier, List<UserModel>>(
+  () => OnlineGameAsyncNotifier(FirebaseFirestore.instance),
 );
 
-class OnlineGameController extends StateNotifier<AsyncValue<List<UserModel>>> {
-  OnlineGameController(this._firestore, this._auth)
-      : super(const AsyncValue.loading()) {
+class OnlineGameAsyncNotifier extends AsyncNotifier<List<UserModel>> {
+  OnlineGameAsyncNotifier(this._firestore);
+
+  @override
+  Future<List<UserModel>> build() async {
+    final isLoggedIn = ref.watch(authAsyncNotifierProvider.select(
+      (auth) => auth.value != null,
+    ));
+
+    if (!isLoggedIn) return [];
+
     _initializeOnlineStatus();
     _listenToOnlinePlayers();
+
+    ref.onDispose(() {
+      _onlinePlayersSubscription?.cancel();
+      _onlineStatusTimer?.cancel();
+    });
+
+    return [];
   }
 
   final FirebaseFirestore _firestore;
-  final FirebaseAuth _auth;
   StreamSubscription? _onlinePlayersSubscription;
   Timer? _onlineStatusTimer;
 
   void _initializeOnlineStatus() {
-    if (_auth.currentUser == null) return;
-
     // Update online status periodically
     _onlineStatusTimer?.cancel();
     _onlineStatusTimer = Timer.periodic(const Duration(minutes: 1), (_) {
@@ -43,20 +50,39 @@ class OnlineGameController extends StateNotifier<AsyncValue<List<UserModel>>> {
     _updateOnlineStatus();
 
     // Set status to offline when user signs out
-    _auth.authStateChanges().listen((user) {
-      if (user == null) {
+    ref.listen(authAsyncNotifierProvider, (previous, next) {
+      if (next.value == null) {
         _setOfflineStatus();
       }
     });
   }
 
+  void _listenToOnlinePlayers() {
+    final user = ref.watch(authAsyncNotifierProvider).value!;
+
+    _onlinePlayersSubscription?.cancel();
+    _onlinePlayersSubscription = _firestore
+        .collection('users')
+        .where('id', isNotEqualTo: user.id)
+        .snapshots()
+        .listen(
+      (snapshot) {
+        final players =
+            snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
+
+        state = AsyncValue.data(players);
+      },
+      onError: (error) {
+        state = AsyncValue.error(error, StackTrace.current);
+      },
+    );
+  }
+
   Future<void> _updateOnlineStatus() async {
-    if (_auth.currentUser == null) return;
+    final user = ref.read(authAsyncNotifierProvider).value!;
 
     try {
-      await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
-        'id': _auth.currentUser!.uid,
-        'email': _auth.currentUser!.email,
+      await _firestore.collection('users').doc(user.id).update({
         'status': OnlineStatus.online.toString(),
       });
     } catch (e) {
@@ -66,12 +92,10 @@ class OnlineGameController extends StateNotifier<AsyncValue<List<UserModel>>> {
   }
 
   Future<void> _setOfflineStatus() async {
-    if (_auth.currentUser == null) return;
+    final user = ref.read(authAsyncNotifierProvider).value!;
 
     try {
-      await _firestore.collection('users').doc(_auth.currentUser!.uid).update({
-        'id': _auth.currentUser!.uid,
-        'email': _auth.currentUser!.email,
+      await _firestore.collection('users').doc(user.id).update({
         'status': OnlineStatus.offline.toString(),
       });
     } catch (e) {
@@ -80,41 +104,21 @@ class OnlineGameController extends StateNotifier<AsyncValue<List<UserModel>>> {
     }
   }
 
-  void _listenToOnlinePlayers() {
-    if (_auth.currentUser == null) return;
-
-    _onlinePlayersSubscription?.cancel();
-    _onlinePlayersSubscription = _firestore
-        .collection('users')
-        .where('id', isNotEqualTo: _auth.currentUser!.uid)
-        .snapshots()
-        .listen(
-      (snapshot) {
-        final players =
-            snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
-        state = AsyncValue.data(players);
-      },
-      onError: (error) {
-        state = AsyncValue.error(error, StackTrace.current);
-      },
-    );
-  }
-
   Future<bool> hasActiveRequests() async {
-    if (_auth.currentUser == null) return false;
+    final user = ref.read(authAsyncNotifierProvider).value!;
 
     try {
       // Check for pending requests sent by the user
       final sentRequests = await _firestore
           .collection('gameRequests')
-          .where('fromPlayerId', isEqualTo: _auth.currentUser!.uid)
+          .where('fromPlayerId', isEqualTo: user.id)
           .where('status', isEqualTo: GameRequestStatus.pending.toString())
           .get();
 
       // Check for pending requests received by the user
       final receivedRequests = await _firestore
           .collection('gameRequests')
-          .where('toPlayerId', isEqualTo: _auth.currentUser!.uid)
+          .where('toPlayerId', isEqualTo: user.id)
           .where('status', isEqualTo: GameRequestStatus.pending.toString())
           .get();
 
@@ -126,19 +130,19 @@ class OnlineGameController extends StateNotifier<AsyncValue<List<UserModel>>> {
   }
 
   Future<void> cleanupGameRequests() async {
-    if (_auth.currentUser == null) return;
+    final user = ref.watch(authAsyncNotifierProvider).value!;
 
     try {
       // Get all pending requests involving the current user
       final sentRequests = await _firestore
           .collection('gameRequests')
-          .where('fromPlayerId', isEqualTo: _auth.currentUser!.uid)
+          .where('fromPlayerId', isEqualTo: user.id)
           .where('status', isEqualTo: GameRequestStatus.pending.toString())
           .get();
 
       final receivedRequests = await _firestore
           .collection('gameRequests')
-          .where('toPlayerId', isEqualTo: _auth.currentUser!.uid)
+          .where('toPlayerId', isEqualTo: user.id)
           .where('status', isEqualTo: GameRequestStatus.pending.toString())
           .get();
 
@@ -159,7 +163,7 @@ class OnlineGameController extends StateNotifier<AsyncValue<List<UserModel>>> {
   }
 
   Future<void> sendGameRequest(String toPlayerId) async {
-    if (_auth.currentUser == null) return;
+    final user = ref.watch(authAsyncNotifierProvider).value!;
 
     try {
       // Check if either player has any active requests
@@ -184,7 +188,7 @@ class OnlineGameController extends StateNotifier<AsyncValue<List<UserModel>>> {
       }
 
       await _firestore.collection('gameRequests').add({
-        'fromPlayerId': _auth.currentUser!.uid,
+        'fromPlayerId': user.id,
         'toPlayerId': toPlayerId,
         'status': GameRequestStatus.pending.toString(),
         'timestamp': DateTime.now().millisecondsSinceEpoch,
@@ -255,12 +259,5 @@ class OnlineGameController extends StateNotifier<AsyncValue<List<UserModel>>> {
       log('Error responding to game request: $e');
       // Handle error
     }
-  }
-
-  @override
-  void dispose() {
-    _onlinePlayersSubscription?.cancel();
-    _onlineStatusTimer?.cancel();
-    super.dispose();
   }
 }

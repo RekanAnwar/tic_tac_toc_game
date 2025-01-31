@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/auth_state_notifier.dart';
-import 'package:tic_tac_toc_game/controllers/online_game_state_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/auth_async_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/online_game_async_notifier.dart';
 import 'package:tic_tac_toc_game/models/user_model.dart';
 
 class OnlinePlayersList extends ConsumerWidget {
@@ -9,8 +9,8 @@ class OnlinePlayersList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final onlinePlayers = ref.watch(onlineGameControllerProvider);
-    final currentUserId = ref.watch(authControllerProvider).value?.id;
+    final onlinePlayers = ref.watch(onlineGameAsyncNotifierProvider);
+    final currentUserId = ref.watch(authAsyncNotifierProvider).value?.id;
 
     return onlinePlayers.when(
       data: (players) {
@@ -30,11 +30,11 @@ class OnlinePlayersList extends ConsumerWidget {
                 leading: CircleAvatar(
                   backgroundColor: player.status.color,
                   child: Text(
-                    player.email?.substring(0, 1).toUpperCase() ?? '',
+                    player.displayName?.substring(0, 1).toUpperCase() ?? '',
                     style: const TextStyle(color: Colors.white),
                   ),
                 ),
-                title: Text(player.email ?? ''),
+                title: Text(player.displayName ?? 'No name'),
                 subtitle: Text(player.status.text),
                 trailing: player.status == OnlineStatus.online
                     ? ElevatedButton(
@@ -42,7 +42,8 @@ class OnlinePlayersList extends ConsumerWidget {
                           if (currentUserId != null) {
                             try {
                               await ref
-                                  .read(onlineGameControllerProvider.notifier)
+                                  .read(
+                                      onlineGameAsyncNotifierProvider.notifier)
                                   .sendGameRequest(player.id ?? '');
 
                               if (!context.mounted) return;

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tic_tac_toc_game/controllers/auth_state_notifier.dart';
+import 'package:tic_tac_toc_game/controllers/auth_async_notifier.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authControllerProvider).value;
+    final user = ref.watch(authAsyncNotifierProvider).value;
 
     return Scaffold(
       appBar: AppBar(
@@ -68,7 +68,14 @@ class ProfilePage extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildStatItem('Wins', user?.wins.toString() ?? '0'),
+                      _buildStatItem(
+                        'Wins',
+                        user?.wins.toString() ?? '0',
+                      ),
+                      _buildStatItem(
+                        'Total Games',
+                        user?.totalGames.toString() ?? '0',
+                      ),
                     ],
                   ),
                 ],
@@ -80,7 +87,7 @@ class ProfilePage extends ConsumerWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () =>
-                    ref.read(authControllerProvider.notifier).signOut(),
+                    ref.read(authAsyncNotifierProvider.notifier).signOut(),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   backgroundColor: Colors.red,

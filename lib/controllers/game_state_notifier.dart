@@ -3,20 +3,26 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tic_tac_toc_game/controllers/auth_async_notifier.dart';
 import 'package:tic_tac_toc_game/models/game_model.dart';
 import 'package:tic_tac_toc_game/models/user_model.dart';
 
-final gameControllerProvider =
-    StateNotifierProvider<GameController, AsyncValue<GameModel>>(
-  (ref) => GameController(
+final gameControllerProvider = AsyncNotifierProvider<GameController, GameModel>(
+  () => GameController(
     FirebaseFirestore.instance,
     FirebaseAuth.instance,
   ),
 );
 
-class GameController extends StateNotifier<AsyncValue<GameModel>> {
-  GameController(this._firestore, this._auth)
-      : super(AsyncValue.data(GameModel.initial()));
+class GameController extends AsyncNotifier<GameModel> {
+  GameController(this._firestore, this._auth);
+
+  @override
+  FutureOr<GameModel> build() {
+    ref.onDispose(() => _gameSubscription?.cancel());
+
+    return GameModel.initial();
+  }
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
@@ -117,34 +123,17 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
           await requests.docs.first.reference.update({'isGameActive': false});
         }
 
-        // Update player 1 stats
+        // Update stats using AuthAsyncNotifier
         if (currentState.player1Id != null) {
-          final doc1 = await _firestore
-              .collection('users')
-              .doc(currentState.player1Id)
-              .get();
-
-          final currentStats1 = doc1.data() ?? {};
-          await _firestore.collection('users').doc(currentState.player1Id).set({
-            ...currentStats1,
-            'totalGames': (currentStats1['totalGames'] ?? 0) + 1,
-            'wins': (currentStats1['wins'] ?? 0) + (player1Won ? 1 : 0),
-          }, SetOptions(merge: true));
+          await ref
+              .read(authAsyncNotifierProvider.notifier)
+              .updateGameStats(currentState.player1Id!, player1Won);
         }
 
-        // Update player 2 stats
         if (currentState.player2Id != null) {
-          final doc2 = await _firestore
-              .collection('users')
-              .doc(currentState.player2Id)
-              .get();
-
-          final currentStats2 = doc2.data() ?? {};
-          await _firestore.collection('users').doc(currentState.player2Id).set({
-            ...currentStats2,
-            'totalGames': (currentStats2['totalGames'] ?? 0) + 1,
-            'wins': (currentStats2['wins'] ?? 0) + (player2Won ? 1 : 0),
-          }, SetOptions(merge: true));
+          await ref
+              .read(authAsyncNotifierProvider.notifier)
+              .updateGameStats(currentState.player2Id!, player2Won);
         }
       }
     } catch (e) {
@@ -307,11 +296,5 @@ class GameController extends StateNotifier<AsyncValue<GameModel>> {
   // Helper method to flatten the board
   List<int> _flattenBoard(List<List<Player>> board) {
     return board.expand((row) => row.map((cell) => cell.index)).toList();
-  }
-
-  @override
-  void dispose() {
-    _gameSubscription?.cancel();
-    super.dispose();
   }
 }

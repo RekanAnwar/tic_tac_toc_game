@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
               return MaterialPageRoute(builder: (_) => const SignupPage());
             case '/home':
               return MaterialPageRoute(builder: (_) => const HomePage());
-            case '/playwithai':
+            case '/game_ai':
               return MaterialPageRoute(builder: (_) => const GamePageAI());
             case '/game':
               final game = settings.arguments as Map<String, dynamic>;

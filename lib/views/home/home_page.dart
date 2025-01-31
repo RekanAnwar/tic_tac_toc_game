@@ -26,6 +26,21 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(toolbarHeight: 0),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: () => Navigator.pushNamed(context, '/game_ai'),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Play with AI'),
+          ),
+        ),
+      ),
       body: CustomScrollView(
         slivers: [
           SliverPadding(

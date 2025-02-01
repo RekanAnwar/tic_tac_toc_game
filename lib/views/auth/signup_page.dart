@@ -75,7 +75,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: context.height * 0.2),
+                  SizedBox(height: context.height * 0.1),
                   const Text(
                     'Sign up',
                     style: TextStyle(
@@ -99,8 +99,8 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter username';
                       }
-                      if (value.length < 5) {
-                        return 'Username must be at least 5 characters';
+                      if (value.length <= 4) {
+                        return 'Username must be at least 4 characters';
                       }
                       return null;
                     },

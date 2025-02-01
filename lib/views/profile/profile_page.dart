@@ -13,6 +13,9 @@ class ProfilePage extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Profile'),
         centerTitle: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.black,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -22,11 +25,11 @@ class ProfilePage extends ConsumerWidget {
             // Profile Avatar
             CircleAvatar(
               radius: 50,
-              backgroundColor: Colors.grey[300],
+              backgroundColor: Colors.blue[100],
               child: Icon(
                 Icons.person,
                 size: 50,
-                color: Colors.grey[600],
+                color: Colors.blue[800],
               ),
             ),
             const SizedBox(height: 20),
@@ -36,6 +39,7 @@ class ProfilePage extends ConsumerWidget {
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
             ),
             const SizedBox(height: 10),
@@ -52,8 +56,17 @@ class ProfilePage extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    // ignore: deprecated_member_use
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 2,
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
               ),
               child: Column(
                 children: [
@@ -62,6 +75,7 @@ class ProfilePage extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
                   const SizedBox(height: 15),
@@ -90,8 +104,12 @@ class ProfilePage extends ConsumerWidget {
                     ref.read(authAsyncNotifierProvider.notifier).signOut(),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 15),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.red[400],
                   foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
                 ),
                 child: const Text(
                   'Log Out',
@@ -113,6 +131,7 @@ class ProfilePage extends ConsumerWidget {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
+            color: Colors.black87,
           ),
         ),
         Text(

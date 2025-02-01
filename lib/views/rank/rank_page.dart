@@ -41,15 +41,29 @@ class RankPage extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   leading: CircleAvatar(
+                    radius: 20, // Resize the CircleAvatar
                     child: Text('${index + 1}'),
                   ),
-                  title: Text(user.displayName ?? user.email ?? 'Anonymous'),
-                  subtitle: Text('Total Games: ${user.totalGames}'),
+                  title: Text(
+                    user.displayName ?? user.email ?? 'Anonymous',
+                    style: const TextStyle(
+                      fontSize: 18, // Change font size
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    'Total Games: ${user.totalGames}',
+                    style: const TextStyle(
+                      fontSize: 14, // Change font size
+                      color: Colors.grey,
+                    ),
+                  ),
                   trailing: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: const Color.fromARGB(
+                          255, 48, 148, 52), // Change container color
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(

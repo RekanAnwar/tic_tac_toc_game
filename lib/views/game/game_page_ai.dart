@@ -23,12 +23,12 @@ class _TicTacToePageState extends ConsumerState<GamePageAI> {
         _winner = _game.checkWinner();
         if (_winner == 'X') {
           _playerWins++;
-          _showWinDialog('Congratulations! You won!');
+          _showWinDialog('Victory! You are the winner!');
         } else if (_winner == 'O') {
           _aiWins++;
-          _showWinDialog('AI won! Better luck next time!');
+          _showWinDialog('Game Over - AI is victorious!');
         } else if (_winner == 'Tie') {
-          _showWinDialog('It\'s a tie!');
+          _showWinDialog('Draw! The game is tied.');
         }
 
         if (_winner == '' && _currentPlayer == 'X') {
@@ -38,9 +38,9 @@ class _TicTacToePageState extends ConsumerState<GamePageAI> {
           _winner = _game.checkWinner();
           if (_winner == 'O') {
             _aiWins++;
-            _showWinDialog('You couldn\'t win this game');
+            _showWinDialog('Defeat! The AI has won this round.');
           } else if (_winner == 'Tie') {
-            _showWinDialog('It\'s a tie!');
+            _showWinDialog('Draw! The game is tied.');
           }
           _currentPlayer = 'X';
         }
@@ -53,17 +53,11 @@ class _TicTacToePageState extends ConsumerState<GamePageAI> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text(
-            'Game Over',
-            textAlign: TextAlign.right,
-          ),
+          title: const Text('Game Over'),
           content: Text(message, textAlign: TextAlign.center),
           actions: <Widget>[
             ElevatedButton(
-              child: const Text(
-                'Play Again',
-                textAlign: TextAlign.right,
-              ),
+              child: const Text('Play Again'),
               onPressed: () {
                 Navigator.of(context).pop();
                 _resetGame();
@@ -88,19 +82,15 @@ class _TicTacToePageState extends ConsumerState<GamePageAI> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text(
-            'Tic Tac Toe',
-            style: TextStyle(color: Colors.white),
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.blueAccent,
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              color: Colors.white,
-              onPressed: _resetGame,
-            )
-          ]),
+        title: const Text('Tic Tac Toe AI'),
+        centerTitle: true,
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _resetGame,
+          )
+        ],
+      ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
@@ -109,11 +99,14 @@ class _TicTacToePageState extends ConsumerState<GamePageAI> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  DropdownButton(
+                  const Text(
+                    'Select Level',
+                    style: TextStyle(fontSize: 24),
+                  ),
+                  DropdownButtonHideUnderline(
+                    child: DropdownButton(
                       value: diffcult,
-                      autofocus: true,
                       hint: const Text('level'),
-                      menuMaxHeight: 400,
                       icon: const Icon(Icons.arrow_drop_down_circle),
                       items: [
                         const DropdownMenuItem(
@@ -129,11 +122,12 @@ class _TicTacToePageState extends ConsumerState<GamePageAI> {
                               style: TextStyle(fontSize: 20),
                             )),
                         const DropdownMenuItem(
-                            value: 3,
-                            child: Text(
-                              'Easy',
-                              style: TextStyle(fontSize: 20),
-                            )),
+                          value: 3,
+                          child: Text(
+                            'Easy',
+                            style: TextStyle(fontSize: 20),
+                          ),
+                        ),
                       ],
                       onChanged: (value) {
                         setState(() {
@@ -141,10 +135,8 @@ class _TicTacToePageState extends ConsumerState<GamePageAI> {
                           setState(() {});
                           // _resetGame();
                         });
-                      }),
-                  const Text(
-                    'Select Level',
-                    style: TextStyle(fontSize: 24),
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -154,7 +146,6 @@ class _TicTacToePageState extends ConsumerState<GamePageAI> {
           const SizedBox(height: 20),
           Text(
             'Player Score: $_playerWins',
-            textAlign: TextAlign.right,
             style: const TextStyle(
                 fontSize: 20, fontWeight: FontWeight.bold, color: Colors.green),
           ),

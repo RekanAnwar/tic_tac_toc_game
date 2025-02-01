@@ -25,7 +25,7 @@ class HomePage extends ConsumerWidget {
     });
 
     return Scaffold(
-      appBar: AppBar(toolbarHeight: 0),
+      appBar: AppBar(toolbarHeight: 0, scrolledUnderElevation: 0),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),

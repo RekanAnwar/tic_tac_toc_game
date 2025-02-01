@@ -11,6 +11,7 @@ class RankPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Rankings'),
         centerTitle: true,
+        scrolledUnderElevation: 0,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance

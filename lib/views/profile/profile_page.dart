@@ -14,8 +14,7 @@ class ProfilePage extends ConsumerWidget {
         title: const Text('Profile'),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+        scrolledUnderElevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

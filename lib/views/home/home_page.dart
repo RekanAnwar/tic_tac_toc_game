@@ -36,8 +36,15 @@ class HomePage extends ConsumerWidget {
             style: FilledButton.styleFrom(
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-            child: const Text('Play with AI'),
+            child: const Text(
+              'Play with AI',
+              style: TextStyle(fontSize: 16),
+            ),
           ),
         ),
       ),

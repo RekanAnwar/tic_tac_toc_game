@@ -103,11 +103,11 @@ class ProfilePage extends ConsumerWidget {
                 onPressed: () =>
                     ref.read(authAsyncNotifierProvider.notifier).signOut(),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                   backgroundColor: Colors.red[400],
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   elevation: 2,
                 ),

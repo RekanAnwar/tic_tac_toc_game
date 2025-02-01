@@ -42,7 +42,7 @@ class OnlinePlayersList extends ConsumerWidget {
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   leading: CircleAvatar(
                     radius: 24,
-                    backgroundColor: isOnline ? Colors.green : Colors.red,
+                    backgroundColor: player.status.color,
                     child: Text(
                       (player.displayName?.isNotEmpty ?? false)
                           ? player.displayName![0].toUpperCase()

@@ -118,8 +118,6 @@ class AuthAsyncNotifier extends AsyncNotifier<UserModel?> {
 
   Future<void> updateGameStats(String userId, bool isWinner) async {
     try {
-      log('Updating game stats for user: $userId');
-
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)

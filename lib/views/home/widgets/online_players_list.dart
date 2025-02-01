@@ -54,20 +54,22 @@ class OnlinePlayersList extends ConsumerWidget {
                   title: Text(
                     player.displayName ?? 'Unknown Player',
                     style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w600),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   subtitle: Row(
                     children: [
                       Icon(
-                        isOnline ? Icons.circle : Icons.circle,
-                        color: isOnline ? Colors.green : Colors.red,
+                        Icons.circle,
+                        color: player.status.color,
                         size: 16,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         player.status.text,
                         style: TextStyle(
-                          color: isOnline ? Colors.green[700] : Colors.red[700],
+                          color: player.status.color,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -97,9 +99,7 @@ class OnlinePlayersList extends ConsumerWidget {
 
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Game request sent!'),
-                                  backgroundColor: Colors.green,
-                                ),
+                                    content: Text('Game request sent!')),
                               );
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(

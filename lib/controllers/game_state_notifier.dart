@@ -273,21 +273,22 @@ class GameController extends AsyncNotifier<GameModel> {
 
         // Update player statuses
         if (game.player1Id != null) {
-          batch.update(_firestore.collection('users').doc(game.player1Id),
-              {'status': OnlineStatus.online.toString()});
+          batch.update(
+            _firestore.collection('users').doc(game.player1Id),
+            {'status': OnlineStatus.online.toString()},
+          );
         }
         if (game.player2Id != null) {
-          batch.update(_firestore.collection('users').doc(game.player2Id),
-              {'status': OnlineStatus.online.toString()});
+          batch.update(
+            _firestore.collection('users').doc(game.player2Id),
+            {'status': OnlineStatus.online.toString()},
+          );
         }
       }
 
       await batch.commit();
 
-      // Cancel the game subscription
       _gameSubscription?.cancel();
-      // Reset the game state to initial
-      state = AsyncValue.data(GameModel.initial());
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
     }

@@ -50,6 +50,34 @@ class _GamePageState extends ConsumerState<GamePage> {
     }
   }
 
+  Future<void> _leaveGame(UserModel currentUser) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Leave Game?'),
+        content: const Text(
+            'Are you sure you want to leave the game? The other player will win.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              await ref
+                  .read(gameControllerProvider.notifier)
+                  .leaveGame(widget.game.gameId!, currentUser.id!);
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+            },
+            child: const Text('Leave'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final game = widget.game;
@@ -74,39 +102,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                     if (game.gameId != null && !gameData.gameOver) {
                       return IconButton(
                         icon: const Icon(Icons.exit_to_app),
-                        onPressed: () async {
-                          await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Leave Game?'),
-                              content: const Text(
-                                  'Are you sure you want to leave the game? The other player will win.'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(context, false),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    await ref
-                                        .read(gameControllerProvider.notifier)
-                                        .leaveGame(
-                                            game.gameId!, currentUser.id!);
-                                    if (context.mounted) {
-                                      Navigator.pop(context, true);
-                                      Navigator.of(context)
-                                          .pushReplacementNamed(
-                                        '/home',
-                                      );
-                                    }
-                                  },
-                                  child: const Text('Leave'),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                        onPressed: () => _leaveGame(currentUser),
                       );
                     }
                     return const SizedBox.shrink();
@@ -193,7 +189,7 @@ class _GamePageState extends ConsumerState<GamePage> {
                                 .getUser();
                           }
                           if (context.mounted) {
-                            Navigator.of(context).pushReplacementNamed('/home');
+                            Navigator.pop(context);
                           }
                         },
                         style: FilledButton.styleFrom(
@@ -319,7 +315,10 @@ class _GamePageState extends ConsumerState<GamePage> {
   }
 
   String _getGameStatusText(GameModel game, String? currentUserId) {
-    if (game.playerLeft != null && game.playerLeft != currentUserId) {
+    if (game.playerLeft != null) {
+      if (game.playerLeft == currentUserId) {
+        return 'Game Over - You Left';
+      }
       return 'You Won! Opponent Left';
     }
 

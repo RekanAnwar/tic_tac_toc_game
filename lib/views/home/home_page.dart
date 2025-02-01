@@ -54,6 +54,9 @@ class HomePage extends ConsumerWidget {
           ),
           const GameRequests(),
           const OnlinePlayersList(),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: kBottomNavigationBarHeight + 20),
+          ),
         ],
       ),
     );

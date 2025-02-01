@@ -83,13 +83,10 @@ class AnimatedGameSymbol extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Colors.blue, Colors.blueAccent],
-        ),
-        borderRadius: BorderRadius.circular(size / 2),
+        shape: BoxShape.circle,
         border: Border.all(
-          color: Colors.transparent,
           width: 8,
+          color: Colors.blue,
         ),
       ),
     );

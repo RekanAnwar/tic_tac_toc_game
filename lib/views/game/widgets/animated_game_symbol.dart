@@ -16,7 +16,7 @@ class AnimatedGameSymbol extends StatelessWidget {
     if (player == Player.none) return const SizedBox();
 
     return TweenAnimationBuilder(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 200),
       tween: Tween<double>(begin: 0, end: 1),
       builder: (context, value, child) {
         return Transform.scale(
@@ -40,7 +40,7 @@ class AnimatedGameSymbol extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Colors.red, Colors.redAccent],
+                  colors: [Colors.blue, Colors.blueAccent],
                 ),
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: const [
@@ -59,7 +59,7 @@ class AnimatedGameSymbol extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Colors.red, Colors.redAccent],
+                  colors: [Colors.blue, Colors.blueAccent],
                 ),
                 borderRadius: BorderRadius.circular(10),
                 boxShadow: const [
@@ -86,7 +86,7 @@ class AnimatedGameSymbol extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(
           width: 8,
-          color: Colors.blue,
+          color: Colors.red,
         ),
       ),
     );
